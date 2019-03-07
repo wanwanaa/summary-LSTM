@@ -1,8 +1,19 @@
+import argparse
 from utils import *
 
 
 def main():
     config = Config()
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--t_len', '-t', metavar='NUM', type=int, help='display max_length')
+    parser.add_argument('--s_len', '-s', metavar='NUM', type=int, help='display summary_length')
+
+    args = parser.parse_args()
+    if args.t_len:
+        config.t_len = args.t_len
+    if args.s_len:
+        config.s_len = args.s_len
 
     # get datasets(train, valid, test)
     print('Loading data ... ...')

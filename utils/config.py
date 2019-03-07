@@ -5,17 +5,10 @@ class Config():
         self.filename_valid = 'DATA/LCSTS/PART_II.txt'
         self.filename_test = 'DATA/LCSTS/PART_III.txt'
 
-        # embedding
-        self.dim = 512
-
         # trimmed data
-        self.filename_trimmed_train = 'DATA/data/train.pt'
+        self.filename_trimmed_train = 'DATA/data/valid.pt'
         self.filename_trimmed_valid = 'DATA/data/valid.pt'
         self.filename_trimmed_test = 'DATA/data/test.pt'
-
-        # sequence length
-        self.t_len = 150
-        self.s_len = 50
 
         # bos
         self.bos = 2
@@ -25,5 +18,29 @@ class Config():
         self.filename_idx2word = 'DATA/data/index2word.pkl'
         self.vocab_size = 4000
 
+        # sequence length
+        self.t_len = 150
+        self.s_len = 50
+
+        # embedding
+        self.filename_embedding = ''
+        self.filename_trimmed_embedding = ''
+
+        # filename
+        self.filename_model = 'result/model/'
+        self.filename_data = 'result/data/'
+        self.filename_rouge = 'result/data/ROUGE.txt'
+
         # Hyper Parameters
         self.LR = 0.001
+        self.batch_size = 64
+        self.iters = 10000
+        self.embedding_dim = 512
+        self.hidden_size = 512
+
+        self.n_layer = 2
+        self.cell = 'lstm'
+        self.attn_flag = 'luong'
+        self.dropout = 0
+        self.bidirectional = True
+        self.optimzer = 'Adam'

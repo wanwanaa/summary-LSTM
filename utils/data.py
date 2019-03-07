@@ -1,6 +1,7 @@
 import torch
 import torch.utils.data as data_util
 import numpy as np
+from scipy.stats import truncnorm
 
 
 class Datasets():
@@ -74,3 +75,23 @@ def save_data(text, summary, word2idx, t_len, s_len, filename):
     data = data_util.TensorDataset(text, summary)
     print('data save at ', filename)
     torch.save(data, filename)
+
+
+def get_embeddings(config, vocab):
+    embeddings = np.zeros((config.vocab_size, config.embedding_dim))
+    flag = list(np.arange(0, 4000))
+    with open(config.filename_embedding, 'r', encoding='utf-8') as f:
+        for line in f:
+            line = line.strip().split(' ')
+            word = line[0]
+            if word in vocab.word2idx.keys():
+                flag.remove(vocab.word2idx[word])
+                embedding = [float(x) for x in line[1:]]
+                embeddings[vocab.word2idx[word]] = embedding
+    for i in flag:
+        np.random.seed(i)
+        embedding = truncnorm.rvs(-2, 2, size=config.embedding_dim)
+        embeddings[i] = embedding
+    embeddings = torch.from_numpy(embeddings)
+    torch.save(embeddings, config.filename_trimmed_embedding)
+    print('embeddings save at:', config.filename_trimmed_embedding)
