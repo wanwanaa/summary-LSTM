@@ -64,8 +64,23 @@ def test(model, epoch, idx2word, config):
         f.write('\n'.join(result))
 
     # rouge
+    score = rouge_score(config.filename_gold, filename_data)
 
-    return all_loss / num
+    # write rouge
+    write_rouge(config.filename_rouge, score, epoch)
+
+    # print rouge
+    print('epoch:', epoch, '|ROUGE-1 f: %.4f' % score['rouge-1']['f'],
+          ' p: %.4f' % score['rouge-1']['p'],
+          ' r: %.4f' % score['rouge-1']['r'])
+    print('epoch:', epoch, '|ROUGE-2 f: %.4f' % score['rouge-2']['f'],
+          ' p: %.4f' % score['rouge-2']['p'],
+          ' r: %.4f' % score['rouge-2']['r'])
+    print('epoch:', epoch, '|ROUGE-L f: %.4f' % score['rouge-l']['f'],
+          ' p: %.4f' % score['rouge-l']['p'],
+          ' r: %.4f' % score['rouge-l']['r'])
+
+    return score, all_loss / num
 
 
 def train(model, args, config, idx2word):
@@ -101,6 +116,8 @@ def train(model, args, config, idx2word):
             optim.zero_grad()
             loss.backward()
             optim.step()
+
+            all_loss += loss.item()
             if step % 200 == 0:
                 print('epoch:', e, '|step:', step, '|train_loss: %.4f' % loss.item())
 
@@ -110,15 +127,16 @@ def train(model, args, config, idx2word):
         train_loss.append(loss)
 
         # valid
-        loss_v = valid(model, args.epoch, config.filename_trimmed_valid)
+        loss_v = valid(model, e, config.filename_trimmed_valid)
         valid_loss.append(loss_v)
 
         # test
-        loss_t = test(model, args.epoch, idx2word, config)
+        rouge, loss_t = test(model, e, idx2word, config)
         test_loss.append(loss_t)
+        test_rouge.append(rouge)
 
         if args.save_model:
-            filename = config.filename_model + 'model_' + str(args.epoch) + '.pkl'
+            filename = config.filename_model + 'model_' + str(e) + '.pkl'
             save_model(model, filename)
 
     # # write result
@@ -138,7 +156,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     ###################
-    args.batch_size = 2
+    # args.batch_size = 2
     ###################
 
     if args.batch_size:
@@ -148,6 +166,9 @@ if __name__ == '__main__':
 
     # seed
     torch.manual_seed(args.seed)
+
+    # rouge initalization
+    open(config.filename_rouge, 'w')
 
     model = build_model(config)
     if torch.cuda.is_available():

@@ -50,12 +50,12 @@ class Seq2seq(nn.Module):
         h, encoder_out = self.encoder(x)
 
         # add <bos>
-        y = self.convert(y)
+        y_c = self.convert(y)
 
         # decoder
         result = []
         for i in range(self.s_len):
-            _, out, h = self.decoder(y[:, i], h, encoder_out)
+            _, out, h = self.decoder(y_c[:, i], h, encoder_out)
             gen = self.output_layer(out).squeeze()
             result.append(gen)
 

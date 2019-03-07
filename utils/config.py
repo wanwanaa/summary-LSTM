@@ -6,7 +6,7 @@ class Config():
         self.filename_test = 'DATA/LCSTS/PART_III.txt'
 
         # trimmed data
-        self.filename_trimmed_train = 'DATA/data/valid.pt'
+        self.filename_trimmed_train = 'DATA/data/train.pt'
         self.filename_trimmed_valid = 'DATA/data/valid.pt'
         self.filename_trimmed_test = 'DATA/data/test.pt'
 
@@ -28,8 +28,11 @@ class Config():
 
         # filename
         self.filename_model = 'result/model/'
-        self.filename_data = 'result/data/'
-        self.filename_rouge = 'result/data/ROUGE.txt'
+        #################################################
+        self.filename_data = 'result/data/data/'
+        self.filename_rouge = 'result/data/data/ROUGE.txt'
+        #################################################
+        self.filename_gold = 'result/gold/gold_summaries.txt'
 
         # Hyper Parameters
         self.LR = 0.001
@@ -37,10 +40,11 @@ class Config():
         self.iters = 10000
         self.embedding_dim = 512
         self.hidden_size = 512
+        self.beam_size = 10
 
         self.n_layer = 2
         self.cell = 'lstm'
-        self.attn_flag = 'luong'
+        self.attn_flag = 'bahdanau'
         self.dropout = 0
         self.bidirectional = True
         self.optimzer = 'Adam'
