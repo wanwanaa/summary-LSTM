@@ -13,16 +13,10 @@ def save_plot(train_loss, valid_loss, test_loss, test_rouge, filename_result):
         pickle.dump(result, f)
 
 
-def data_load(filename, shuffle):
-    data = torch.load(filename)
-    data_loader = data_util.DataLoader(data, config.batch_size, shuffle=shuffle, num_workers=2)
-    return data_loader
-
-
-def valid(model, epoch, filename):
+def valid(model, epoch, filename, config):
     model.eval()
     # data
-    test_loader = data_load(filename, False)
+    test_loader = data_load(filename, config.batch_size, False)
     all_loss = 0
     num = 0
     for step, batch in enumerate(test_loader):
@@ -41,7 +35,7 @@ def valid(model, epoch, filename):
 def test(model, epoch, idx2word, config):
     model.eval()
     # data
-    test_loader = data_load(config.filename_trimmed_test, False)
+    test_loader = data_load(config.filename_trimmed_test, config.batch_size, False)
     all_loss = 0
     num = 0
     result = []
@@ -93,7 +87,7 @@ def train(model, args, config, idx2word):
         optim = torch.optim.Adam(model.parameters(), lr=config.LR)
 
     # data
-    train_loader = data_load(config.filename_trimmed_train, True)
+    train_loader = data_load(config.filename_trimmed_train, config.batch_size, True)
 
     # loss result
     train_loss = []
@@ -129,7 +123,7 @@ def train(model, args, config, idx2word):
         train_loss.append(loss)
 
         # valid
-        loss_v = valid(model, e, config.filename_trimmed_valid)
+        loss_v = valid(model, e, config.filename_trimmed_valid, config)
         valid_loss.append(loss_v)
 
         # test

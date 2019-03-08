@@ -95,3 +95,9 @@ def get_embeddings(config, vocab):
     embeddings = torch.from_numpy(embeddings)
     torch.save(embeddings, config.filename_trimmed_embedding)
     print('embeddings save at:', config.filename_trimmed_embedding)
+
+
+def data_load(filename, batch_size, shuffle):
+    data = torch.load(filename)
+    data_loader = data_util.DataLoader(data, batch_size, shuffle=shuffle, num_workers=2)
+    return data_loader

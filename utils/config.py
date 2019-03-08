@@ -10,8 +10,9 @@ class Config():
         self.filename_trimmed_valid = 'DATA/data/valid.pt'
         self.filename_trimmed_test = 'DATA/data/test.pt'
 
-        # bos
+        # bos eos
         self.bos = 2
+        self.eos = 3
 
         # vocab
         self.filename_word2idx = 'DATA/data/word2index.pkl'
@@ -29,8 +30,8 @@ class Config():
         # filename
         self.filename_model = 'result/model/'
         #################################################
-        self.filename_data = 'result/data/data/'
-        self.filename_rouge = 'result/data/data/ROUGE.txt'
+        self.filename_data = 'result/data/'
+        self.filename_rouge = 'result/data/ROUGE.txt'
         #################################################
         self.filename_gold = 'result/gold/gold_summaries.txt'
 
@@ -40,11 +41,11 @@ class Config():
         self.iters = 10000
         self.embedding_dim = 512
         self.hidden_size = 512
-        self.beam_size = 10
+        self.beam_size = 2
 
         self.n_layer = 2
         self.cell = 'lstm'
-        self.attn_flag = 'bahdanau'
+        self.attn_flag = 'luong'
         self.dropout = 0
         self.bidirectional = True
         self.optimzer = 'Adam'

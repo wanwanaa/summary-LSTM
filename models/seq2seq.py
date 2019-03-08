@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 import numpy as np
-from models import *
+from models.beam import *
 
 
 class Seq2seq(nn.Module):
@@ -11,7 +11,11 @@ class Seq2seq(nn.Module):
         self.decoder = decoder
         self.bos = config.bos
         self.s_len = config.s_len
+        self.beam_size = config.beam_size
+        self.config = config
+
         self.loss_func = nn.CrossEntropyLoss()
+
         self.linear_out = nn.Linear(config.hidden_size, config.vocab_size)
         self.softmax = nn.Softmax(dim=-1)
 
@@ -85,4 +89,61 @@ class Seq2seq(nn.Module):
         return loss, idx
 
     def beam_search(self, x):
-        pass
+        h, encoder_out = self.encoder(x)
+        encoder_out = encoder_out.repeat(1, self.beam_size, 1).view(-1, self.config.t_len, self.config.hidden_size)
+        # initial beam
+        beam = []
+        for i in range(x.size(0)):
+            if self.config.cell == 'lstm':
+                beam.append(Beam(self.config, (h[0][:, i].squeeze(), h[1][:, i].squeeze())))
+            else:
+                beam.append(Beam(self.config, h[:, i].squeeze()))
+        for i in range(self.s_len):
+            out = []
+            h = []
+            for i in range(x.size(0)):
+                out.append(beam[i].get_node())
+                h.append(beam[i].get_h())
+            out = torch.stack(out).view(-1) # (batch_size, beam_size, 1) -> (batch_size*beam_size)
+            # (batch_size, beam_size, n_layer, hidden_size) -> (batch_size*beam_size, n_layer, hidden_size)
+            # ->(n_layer, batch_size, hidden_size)
+            if self.config.cell == 'lstm':
+                h0 = []
+                h1 = []
+                for i in range(len(h)):
+                    h0.append(h[i][0])
+                    h1.append(h[i][1])
+                h0 = torch.stack(h0).view(-1, self.config.n_layer, self.config.hidden_size).transpose(0, 1)
+                h1 = torch.stack(h1).view(-1, self.config.n_layer, self.config.hidden_size).transpose(0, 1)
+                h = (h0, h1)
+            else:
+                h = torch.stack(h).view(-1, self.config.n_layer, self.hidden_size).transpose(0, 1)
+            if torch.cuda.is_available():
+                out = out.type(torch.cuda.LongTensor)
+            else:
+                out = out.type(torch.LongTensor)
+
+            # out (batch_size*beam_size, 1, vocab_size)
+            # h (n_layer, batch_size*beam_size, hidden_size)
+            _, out, h = self.decoder(out, h, encoder_out)
+            out = self.linear_out(out)
+            out = self.softmax(out)
+
+            # out (batch_size, beam_size, vocab_size)
+            # h (n_layer, batch_size, beam_size, hidden_size)
+            out = out.view(-1, self.beam_size, self.config.vocab_size)
+            if self.config.cell == 'lstm':
+                h0 = h[0].view(self.config.n_layer, -1, self.beam_size, self.config.hidden_size)
+                h1 = h[1].view(self.config.n_layer, -1, self.beam_size, self.config.hidden_size)
+                h = (h0, h1)
+                for i in range(x.size(0)):
+                    beam[i].advance((h[0][:, i], h[1][:, i]), out[i])
+            else:
+                h = h.view(self.config.n_layer, -1, self.beam_size, self.config.hidden_size)
+                for i in range(x.size(0)):
+                    beam[i].advance(h[:, i], out[i])
+        idx = []
+        for i in range(x.size(0)):
+            # print(beam[i].path)
+            idx.append(np.array(beam[i].path[0][0]))
+        return idx
