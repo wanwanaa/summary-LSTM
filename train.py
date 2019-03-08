@@ -31,7 +31,8 @@ def valid(model, epoch, filename):
         if torch.cuda.is_available():
             x = x.cuda()
             y = y.cuda()
-        loss, _ = model.sample(x, y)
+        with torch.no_grad:
+            loss, _ = model.sample(x, y)
         all_loss += loss.item()
     print('epoch:', epoch, '|valid_loss: %.4f' % (all_loss / num))
     return all_loss / num
@@ -50,7 +51,8 @@ def test(model, epoch, idx2word, config):
         if torch.cuda.is_available():
             x = x.cuda()
             y = y.cuda()
-        loss, idx = model.sample(x, y)
+        with torch.no_grad:
+            loss, idx = model.sample(x, y)
         all_loss += loss.item()
 
         for i in range(idx.shape[0]):
