@@ -5,7 +5,10 @@ from models.seq2seq import *
 
 def build_model(config):
     embeds = Embeds(config)
-    encoder = Encoder(embeds, config)
+    if config.attn_flag == 'mulit':
+        encoder = Encoder_mulit(embeds, config)
+    else:
+        encoder = Encoder(embeds, config)
     decoder = Decoder(embeds, config)
     model = Seq2seq(encoder, decoder, config)
     return model

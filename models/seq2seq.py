@@ -58,8 +58,20 @@ class Seq2seq(nn.Module):
 
         # decoder
         result = []
+        if self.config.intra_decoder:
+            if torch.cuda.is_available():
+                outs = torch.zeros(x.size(0), 1, self.config.hidden_size).type(torch.cuda.FloatTensor)
+            else:
+                outs = torch.zeros(x.size(0), 1, self.config.hidden_size)
+        else:
+            outs = None
         for i in range(self.s_len):
-            _, out, h = self.decoder(y_c[:, i], h, encoder_out)
+            _, out, h = self.decoder(y_c[:, i], h, encoder_out, outs)
+            if self.config.intra_decoder:
+                if i == 0:
+                    outs = h[0].transpose(0, 1)[:, 1, :].unsqueeze(1)
+                else:
+                    outs = torch.cat((outs, h[0].transpose(0, 1)[:, 1, :].unsqueeze(1)), dim=1)
             gen = self.output_layer(out).squeeze()
             result.append(gen)
 
@@ -72,12 +84,24 @@ class Seq2seq(nn.Module):
         out = torch.ones(x.size(0)) * self.bos
         result = []
         idx = []
+        if self.config.intra_decoder:
+            if torch.cuda.is_available():
+                outs = torch.zeros(x.size(0), 1, self.config.hidden_size).type(torch.cuda.FloatTensor)
+            else:
+                outs = torch.zeros(x.size(0), 1, self.config.hidden_size)
+        else:
+            outs = None
         for i in range(self.s_len):
             if torch.cuda.is_available():
                 out = out.type(torch.cuda.LongTensor)
             else:
                 out = out.type(torch.LongTensor)
-            _, out, h = self.decoder(out, h, encoder_out)
+            _, out, h = self.decoder(out, h, encoder_out, outs)
+            if self.config.intra_decoder:
+                if i == 0:
+                    outs = h[0].transpose(0, 1)[:, 1, :].unsqueeze(1)
+                else:
+                    outs = torch.cat((outs, h[0].transpose(0, 1)[:, 1, :].unsqueeze(1)), dim=1)
             gen = self.linear_out(out.squeeze(1))
             result.append(gen)
             gen = self.softmax(gen)
@@ -98,6 +122,12 @@ class Seq2seq(nn.Module):
                 beam.append(Beam(self.config, (h[0][:, i].squeeze(), h[1][:, i].squeeze())))
             else:
                 beam.append(Beam(self.config, h[:, i].squeeze()))
+
+        if self.config.intra_decoder:
+            outs = torch.zeros(x.size(0)*self.beam_size, 1, self.config.hidden_size)
+        else:
+            outs = None
+
         for i in range(self.s_len):
             out = []
             h = []
@@ -125,7 +155,14 @@ class Seq2seq(nn.Module):
 
             # out (batch_size*beam_size, 1, vocab_size)
             # h (n_layer, batch_size*beam_size, hidden_size)
-            _, out, h = self.decoder(out, h, encoder_out)
+            _, out, h = self.decoder(out, h, encoder_out, outs)
+
+            if self.config.intra_decoder:
+                if i == 0:
+                    outs = h[0].transpose(0, 1)[:, 1, :].unsqueeze(1)
+                else:
+                    outs = torch.cat((outs, h[0].transpose(0, 1)[:, 1, :].unsqueeze(1)), dim=1)
+
             out = self.linear_out(out)
             out = self.softmax(out)
 

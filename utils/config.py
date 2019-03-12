@@ -29,9 +29,9 @@ class Config():
 
         # filename
         #################################################
-        self.filename_model = 'result/model/mulit/'
-        self.filename_data = 'result/data/mulit/'
-        self.filename_rouge = 'result/data/mulit/ROUGE.txt'
+        self.filename_model = 'result/model/n_layer/'
+        self.filename_data = 'result/data/n_layer/'
+        self.filename_rouge = 'result/data/n_layer/ROUGE.txt'
         #################################################
         self.filename_gold = 'result/gold/gold_summaries.txt'
 
@@ -49,3 +49,4 @@ class Config():
         self.dropout = 0
         self.bidirectional = True
         self.optimzer = 'Adam'
+        self.intra_decoder = False

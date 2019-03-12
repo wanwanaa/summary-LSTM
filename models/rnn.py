@@ -70,12 +70,73 @@ class Encoder(nn.Module):
         return h, encoder_out
 
 
+class Encoder_mulit(nn.Module):
+    def __init__(self, embeds, config):
+        super().__init__()
+        self.embeds = embeds
+        self.n_layer = config.n_layer
+        self.cell = config.cell
+        self.bidirectional = config.bidirectional
+        self.hidden_size = config.hidden_size
+        self.t_len = config.t_len
+
+        if config.cell == 'lstm':
+            self.rnn = nn.LSTM(
+                input_size=config.embedding_dim,
+                hidden_size=config.hidden_size,
+                num_layers=config.n_layer,
+                batch_first=True,
+                dropout=config.dropout,
+                bidirectional=config.bidirectional
+            )
+
+        else:
+            self.rnn = nn.GRU(
+                input_size=config.embedding_dim,
+                hidden_size=config.hidden_size,
+                num_layers=config.n_layer,
+                batch_first=True,
+                dropout=config.dropout,
+                bidirectional=config.bidirectional
+            )
+
+    def forward(self, x):
+        e = self.embeds(x)
+        encoder_out = []
+        h_last = None
+        for i in range(self.t_len):
+            out, h = self.rnn(e[:, i, :].unsqueeze(1))
+            if self.cell == 'lstm':
+                encoder_out.append(h[0])
+            else:
+                encoder_out.append(h)
+            if i == self.t_len - 1:
+                h_last = h
+        # (t_len, n_layer*bidirectional, batch, hidden_size)
+        encoder_out = torch.stack(encoder_out)
+        if self.bidirectional:
+            # (t_len, n_layer, 2, batch, hidden_size)
+            encoder_out = encoder_out.contiguous().view(self.t_len, self.n_layer, 2, -1, self.hidden_size)
+            encoder_out = encoder_out[:, :, 0, :, :] + encoder_out[:, :, 1, :, :]
+        else:
+            # (t_len, n_layer, batch, hidden_size)
+            encoder_out = encoder_out
+        # (n_layer, t_len, batch, hidden_size) -> (n_layer, batch, t_len, hidden_size)
+        encoder_out = encoder_out.transpose(0, 1).transpose(1, 2)
+        if self.cell == 'lstm':
+            h_last = (h_last[0][::2].contiguous(), h_last[1][::2].contiguous())
+        else:
+            h_last = h_last[:self.n_layer]
+        return h_last, encoder_out
+
+
 class Decoder(nn.Module):
     def __init__(self, embeds, config):
         super().__init__()
         self.embeds = embeds
         self.attn_flag = config.attn_flag
         self.cell = config.cell
+        self.intra_decoder = config.intra_decoder
 
         if config.cell == 'lstm':
             self.rnn = nn.LSTM(
@@ -103,8 +164,12 @@ class Decoder(nn.Module):
             self.attention = Mulit_head(config, attention)
         else:
             self.attention = None
+        # intra-decoder
+        if self.intra_decoder:
+            self.intra_attention = Luong_Attention(config)
+            self.linear_intra = nn.Linear(config.hidden_size*2, config.hidden_size)
 
-    def forward(self, x, h, encoder_output):
+    def forward(self, x, h, encoder_output, outs):
         """
         :param x: (batch, 1) decoder input
         :param h: (batch, n_layer, hidden_size)
@@ -122,7 +187,12 @@ class Decoder(nn.Module):
                 attn_weights, e = self.attention(e, h, encoder_output)
         out, h = self.rnn(e, h)
 
-        if self.attn_flag == 'luong' or self.attn_flag == 'mulit':
+        if self.attn_flag == 'luong':
             attn_weights, out = self.attention(out, encoder_output)
+        if self.attn_flag == 'mulit':
+            attn_weights, out = self.attention(h[0].transpose(0, 1), encoder_output)
+        if self.intra_decoder:
+            attn_weights, c = self.intra_attention(out, outs)
+            out = self.linear_intra(torch.cat((out, c), dim=-1))
 
         return attn_weights, out, h
