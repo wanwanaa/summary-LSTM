@@ -6,7 +6,7 @@ class Config():
         self.filename_test = 'DATA/LCSTS/PART_III.txt'
 
         # trimmed data
-        self.filename_trimmed_train = 'DATA/data/train.pt'
+        self.filename_trimmed_train = 'DATA/data/valid.pt'
         self.filename_trimmed_valid = 'DATA/data/valid.pt'
         self.filename_trimmed_test = 'DATA/data/test.pt'
 
@@ -28,15 +28,15 @@ class Config():
         self.filename_trimmed_embedding = ''
 
         # filename
-        self.filename_model = 'result/model/'
         #################################################
-        self.filename_data = 'result/data/'
-        self.filename_rouge = 'result/data/ROUGE.txt'
+        self.filename_model = 'result/model/mulit/'
+        self.filename_data = 'result/data/mulit/'
+        self.filename_rouge = 'result/data/mulit/ROUGE.txt'
         #################################################
         self.filename_gold = 'result/gold/gold_summaries.txt'
 
         # Hyper Parameters
-        self.LR = 0.001
+        self.LR = 0.0003
         self.batch_size = 64
         self.iters = 10000
         self.embedding_dim = 512
@@ -45,7 +45,7 @@ class Config():
 
         self.n_layer = 2
         self.cell = 'lstm'
-        self.attn_flag = 'luong'
+        self.attn_flag = 'mulit'
         self.dropout = 0
         self.bidirectional = True
         self.optimzer = 'Adam'

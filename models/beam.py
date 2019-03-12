@@ -75,7 +75,11 @@ class Beam():
                 for k in range(self.beam_size):
                     p = pre_path.copy()
                     p.append(int(indices[k]))
-                    scorce = math.log(sorted[k]) + pre_scorce
+                    if sorted[k].item() == 0:
+                        scorce = -999 + pre_scorce
+                    # print(sorted[k])
+                    else:
+                        scorce = math.log(sorted[k]) + pre_scorce
                     if self.cell == 'lstm':
                         candidate.append([p, (h[0][:, i], h[1][:, i]), scorce])
                     else:

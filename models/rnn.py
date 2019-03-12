@@ -98,6 +98,9 @@ class Decoder(nn.Module):
             self.attention = Bahdanau_Attention(config)
         elif config.attn_flag == 'luong':
             self.attention = Luong_Attention(config)
+        elif config.attn_flag == 'mulit':
+            attention = Luong_Attention(config)
+            self.attention = Mulit_head(config, attention)
         else:
             self.attention = None
 
@@ -119,7 +122,7 @@ class Decoder(nn.Module):
                 attn_weights, e = self.attention(e, h, encoder_output)
         out, h = self.rnn(e, h)
 
-        if self.attn_flag == 'luong':
+        if self.attn_flag == 'luong' or self.attn_flag == 'mulit':
             attn_weights, out = self.attention(out, encoder_output)
 
         return attn_weights, out, h

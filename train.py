@@ -25,7 +25,7 @@ def valid(model, epoch, filename, config):
         if torch.cuda.is_available():
             x = x.cuda()
             y = y.cuda()
-        with torch.no_grad:
+        with torch.no_grad():
             loss, _ = model.sample(x, y)
         all_loss += loss.item()
     print('epoch:', epoch, '|valid_loss: %.4f' % (all_loss / num))
@@ -45,7 +45,7 @@ def test(model, epoch, idx2word, config):
         if torch.cuda.is_available():
             x = x.cuda()
             y = y.cuda()
-        with torch.no_grad:
+        with torch.no_grad():
             loss, idx = model.sample(x, y)
         all_loss += loss.item()
 
@@ -100,8 +100,6 @@ def train(model, args, config, idx2word):
         all_loss = 0
         num = 0
         for step, batch in enumerate(train_loader):
-            if step >= config.iters:
-                break
             num += 1
             x, y = batch
             if torch.cuda.is_available():
@@ -147,13 +145,13 @@ if __name__ == '__main__':
     parser.add_argument('--batch_size', '-b', type=int, default=64, help='batch size for train')
     parser.add_argument('--epoch', '-e', type=int, default=20, help='number of training epochs')
     parser.add_argument('--n_layers', '-n', type=int, default=2, help='number of gru layers')
-    parser.add_argument('-seed', '-s', type=int, default=1234, help="Random seed")
+    parser.add_argument('-seed', '-s', type=int, default=123, help="Random seed")
     parser.add_argument('--save_model', '-m', action='store_true', default=False, help="whether to save model")
     args = parser.parse_args()
 
-    ###################
+    # ########test##########
     # args.batch_size = 2
-    ###################
+    # ########test##########
 
     if args.batch_size:
         config.batch_size = args.batch_size

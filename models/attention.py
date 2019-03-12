@@ -38,6 +38,39 @@ class Luong_Attention(nn.Module):
         return attn_weights, output
 
 
+class Mulit_head(nn.Module):
+    def __init__(self, config, attention):
+        super().__init__()
+        self.hidden_size = config.hidden_size
+        self.attention = attention
+
+        self.hidden_1 = nn.Linear(self.hidden_size, self.hidden_size)
+        self.hidden_2 = nn.Linear(self.hidden_size, self.hidden_size)
+        self.encoder_1 = nn.Linear(self.hidden_size, self.hidden_size)
+        self.encoder_2 = nn.Linear(self.hidden_size, self.hidden_size)
+        self.linear_out = nn.Linear(self.hidden_size*2, self.hidden_size)
+
+    def forward(self, output, encoder_out):
+        """
+        :param output: (batch, 1, hidden_size) decoder output
+        :param encoder_out: (batch, t_len, hidden_size) encoder hidden state
+        :return: output (batch, 1, hidden_size) attention vector
+        """
+        # context 1
+        output1 = self.hidden_1(output)
+        encoder_out1 = self.encoder_1(encoder_out)
+        attn_weights, context1 = self.attention(output1, encoder_out1)
+
+        # context 2
+        output2 = self.hidden_1(output)
+        encoder_out2 = self.hidden_2(output)
+        attn_weights, context2 = self.attention(output2, encoder_out2)
+
+        # concat
+        context = self.linear_out(torch.cat((context1, context2), dim=-1))
+        return attn_weights, context
+
+
 class Bahdanau_Attention(nn.Module):
     def __init__(self, config):
         super().__init__()

@@ -75,10 +75,12 @@ class Vocab():
 def index2sentence(index, idx2word):
     sen = []
     for i in range(len(index)):
-        if idx2word[index[i]] == '<bos>':
-            continue
         if idx2word[index[i]] == '<eos>':
             break
+        if idx2word[index[i]] == '<bos>':
+            continue
         else:
             sen.append(idx2word[index[i]])
+    if len(sen) == 0:
+        sen.append('<unk>')
     return sen
