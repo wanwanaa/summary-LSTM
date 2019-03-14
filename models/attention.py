@@ -50,13 +50,13 @@ class Mulit_head(nn.Module):
     def forward(self, output, encoder_out):
         """
         :param output: (batch, n_layer, hidden_size) decoder output
-        :param encoder_out: (n_layer, batch, t_len, hidden_size) encoder hidden state
+        :param encoder_out: (batch, t_len, n_layer, hidden_size) encoder hidden state
         :return: output (batch, 1, hidden_size) attention vector
         """
         # context
         context = None
         for i in range(self.n_layer):
-            _, c = self.attention(output[:, i, :].unsqueeze(1), encoder_out[i])
+            _, c = self.attention(output[:, i, :].unsqueeze(1), encoder_out[:, :, i])
             if i == 0:
                 context = c
             else:

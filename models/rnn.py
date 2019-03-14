@@ -112,17 +112,17 @@ class Encoder_mulit(nn.Module):
                 encoder_out.append(h)
             if i == self.t_len - 1:
                 h_last = h
-        # (t_len, n_layer*bidirectional, batch, hidden_size)
+        # -> (t_len, n_layer*bidirectional, batch, hidden_size)
         encoder_out = torch.stack(encoder_out)
+        # -> (t_len, batch, n_layer*bidirectional, hidden_size) -> (batch, t_len, n_layer*bidirectional, hidden_size)
+        encoder_out = encoder_out.transpose(1, 2).transpose(0, 1)
         if self.bidirectional:
-            # (t_len, n_layer, 2, batch, hidden_size)
-            encoder_out = encoder_out.contiguous().view(self.t_len, self.n_layer, 2, -1, self.hidden_size)
-            encoder_out = encoder_out[:, :, 0, :, :] + encoder_out[:, :, 1, :, :]
+            # (batch, t_len, n_layer, 2, hidden_size)
+            encoder_out = encoder_out.contiguous().view(-1, self.t_len, self.n_layer, 2, self.hidden_size)
+            encoder_out = encoder_out[:, :, :, 0, :] + encoder_out[:, :, :, 1, :]
         else:
-            # (t_len, n_layer, batch, hidden_size)
+            # (batch, t_len, n_layer, hidden_size)
             encoder_out = encoder_out
-        # (n_layer, t_len, batch, hidden_size) -> (n_layer, batch, t_len, hidden_size)
-        encoder_out = encoder_out.transpose(0, 1).transpose(1, 2)
         if self.cell == 'lstm':
             h_last = (h_last[0][::2].contiguous(), h_last[1][::2].contiguous())
         else:

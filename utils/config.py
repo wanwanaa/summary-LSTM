@@ -29,9 +29,9 @@ class Config():
 
         # filename
         #################################################
-        self.filename_model = 'result/model/n_layer/'
-        self.filename_data = 'result/data/n_layer/'
-        self.filename_rouge = 'result/data/n_layer/ROUGE.txt'
+        self.filename_model = 'result/model/'
+        self.filename_data = 'result/data/'
+        self.filename_rouge = 'result/data/ROUGE.txt'
         #################################################
         self.filename_gold = 'result/gold/gold_summaries.txt'
 
