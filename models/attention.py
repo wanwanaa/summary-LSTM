@@ -47,7 +47,32 @@ class Luong_Attention(nn.Module):
 #         self.hidden_size = config.hidden_size
 #         self.attention = attention
 #
-#         self.linear_out = nn.Linear(self.hidden_size*self.n_layer, self.hidden_size)
+#         self.linear_out1 = nn.Sequential(
+#             nn.Linear(self.hidden_size, self.hidden_size),
+#             nn.SELU(),
+#             nn.Linear(self.hidden_size, self.hidden_size)
+#         )
+#         self.linear_out2 = nn.Sequential(
+#             nn.Linear(self.hidden_size, self.hidden_size),
+#             nn.SELU(),
+#             nn.Linear(self.hidden_size, self.hidden_size)
+#         )
+#
+#         self.linear_enc1 = nn.Sequential(
+#             nn.Linear(self.hidden_size, self.hidden_size),
+#             nn.SELU(),
+#             nn.Linear(self.hidden_size, self.hidden_size)
+#         )
+#         self.linear_enc2 = nn.Sequential(
+#             nn.Linear(self.hidden_size, self.hidden_size),
+#             nn.SELU(),
+#             nn.Linear(self.hidden_size, self.hidden_size)
+#         )
+#
+#         self.linear_out = nn.Sequential(
+#             nn.Linear(self.hidden_size*self.n_layer, self.hidden_size),
+#             nn.SELU(),
+#             nn.Linear(self.hidden_size, self.hidden_size))
 #
 #     def forward(self, output, encoder_out):
 #         """
@@ -55,14 +80,15 @@ class Luong_Attention(nn.Module):
 #         :param encoder_out: (batch, t_len, n_layer, hidden_size) encoder hidden state
 #         :return: output (batch, 1, hidden_size) attention vector
 #         """
-#         # context
-#         context = None
-#         for i in range(self.n_layer):
-#             _, c = self.attention(output[:, i, :].unsqueeze(1), encoder_out[:, :, i])
-#             if i == 0:
-#                 context = c
-#             else:
-#                 context = torch.cat((context, c), dim=-1)
+#         output1 = self.linear_out1(output[:, 0, :])
+#         encoder_out1 = self.linear_enc1(encoder_out[:, :, 0, :])
+#         _, context1 = self.attention(output1, encoder_out1)
+#
+#         output2 = self.linear_out1(output[:, 1, :])
+#         encoder_out2 = self.linear_enc1(encoder_out[:, :, 1, :])
+#         _, context2 = self.attention(output2, encoder_out2)
+#
+#         context = torch.cat((context1, context2), -1)
 #         context = self.linear_out(context)
 #         return None, context
 
@@ -75,9 +101,19 @@ class Mulit_head(nn.Module):
 
         self.hidden_1 = nn.Linear(self.hidden_size, self.hidden_size)
         self.hidden_2 = nn.Linear(self.hidden_size, self.hidden_size)
+        self.hidden_3 = nn.Linear(self.hidden_size, self.hidden_size)
+        self.hidden_4 = nn.Linear(self.hidden_size, self.hidden_size)
+
         self.encoder_1 = nn.Linear(self.hidden_size, self.hidden_size)
         self.encoder_2 = nn.Linear(self.hidden_size, self.hidden_size)
-        self.linear_out = nn.Linear(self.hidden_size*2, self.hidden_size)
+        self.encoder_3 = nn.Linear(self.hidden_size, self.hidden_size)
+        self.encoder_4 = nn.Linear(self.hidden_size, self.hidden_size)
+
+        self.linear_out = nn.Sequential(
+            nn.Linear(self.hidden_size*4, self.hidden_size),
+            nn.SELU(),
+            nn.Linear(self.hidden_size, self.hidden_size)
+        )
 
     def forward(self, output, encoder_out):
         """
@@ -91,12 +127,22 @@ class Mulit_head(nn.Module):
         attn_weights, context1 = self.attention(output1, encoder_out1)
 
         # context 2
-        output2 = self.hidden_1(output)
-        encoder_out2 = self.hidden_2(output)
+        output2 = self.hidden_2(output)
+        encoder_out2 = self.encoder_2(output)
         attn_weights, context2 = self.attention(output2, encoder_out2)
 
+        # context 3
+        output3 = self.hidden_3(output)
+        encoder_out3 = self.encoder_3(output)
+        attn_weights, context3 = self.attention(output3, encoder_out3)
+
+        # context 4
+        output4 = self.hidden_4(output)
+        encoder_out4 = self.encoder_4(output)
+        attn_weights, context4 = self.attention(output4, encoder_out4)
+
         # concat
-        context = self.linear_out(torch.cat((context1, context2), dim=-1))
+        context = self.linear_out(torch.cat((context1, context2, context3, context4), dim=-1))
 
         return attn_weights, context
 
