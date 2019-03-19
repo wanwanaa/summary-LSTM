@@ -36,17 +36,18 @@ class Config():
         self.filename_gold = 'result/gold/gold_summaries.txt'
 
         # Hyper Parameters
-        self.LR = 0.0003
+        self.LR = 0.001
         self.batch_size = 64
         self.iters = 10000
         self.embedding_dim = 512
         self.hidden_size = 512
-        self.beam_size = 2
+        self.beam_size = 10
 
         self.n_layer = 2
         self.cell = 'lstm'
-        self.attn_flag = 'mulit'
+        self.attn_flag = 'luong'
         self.dropout = 0
         self.bidirectional = True
         self.optimzer = 'Adam'
         self.intra_decoder = False
+        self.enc_attn = True

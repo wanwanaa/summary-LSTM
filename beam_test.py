@@ -44,6 +44,6 @@ def beam_test(model, config, idx2word, epoch):
 if __name__ == '__main__':
     config = Config()
     vocab = Vocab(config)
-    filename = config.filename_model + 'model_9.pkl'
+    filename = config.filename_model + 'model_19.pkl'
     model = load_model(config, filename)
-    beam_test(model, config, vocab.idx2word, 9)
+    beam_test(model, config, vocab.idx2word, 10)

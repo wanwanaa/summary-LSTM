@@ -50,6 +50,11 @@ class Encoder(nn.Module):
                 bidirectional=config.bidirectional
             )
 
+        if config.enc_attn:
+            self.selfattn = Self_attention(config)
+        else:
+            self.selfattn = None
+
     def forward(self, x):
         """
         :param x:(batch, t_len)
@@ -67,6 +72,9 @@ class Encoder(nn.Module):
             h = (h[0][::2].contiguous(), h[1][::2].contiguous())
         else:
             h = h[:self.n_layer]
+        if self.selfattn:
+            encoder_out = self.selfattn(encoder_out)
+
         return h, encoder_out
 
 
@@ -190,7 +198,10 @@ class Decoder(nn.Module):
         if self.attn_flag == 'luong':
             attn_weights, out = self.attention(out, encoder_output)
         if self.attn_flag == 'mulit':
-            attn_weights, out = self.attention(h[0].transpose(0, 1), encoder_output)
+            attn_weights, out = self.attention(out, encoder_output)
+        # n_layer
+        # if self.attn_flag == 'mulit':
+        #     attn_weights, out = self.attention(h[0].transpose(0, 1), encoder_output)
         if self.intra_decoder:
             attn_weights, c = self.intra_attention(out, outs)
             out = self.linear_intra(torch.cat((out, c), dim=-1))
