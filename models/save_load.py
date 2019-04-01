@@ -5,8 +5,8 @@ from models.seq2seq import *
 
 def build_model(config):
     embeds = Embeds(config)
-    # if config.attn_flag == 'mulit':
-    #     encoder = Encoder_mulit(embeds, config)
+    # if config.attn_flag == 'multi':
+    #     encoder = Encoder_multi(embeds, config)
     # else:
     encoder = Encoder(embeds, config)
     decoder = Decoder(embeds, config)

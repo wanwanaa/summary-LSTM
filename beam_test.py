@@ -18,8 +18,8 @@ def beam_test(model, config, idx2word, epoch):
             sen = index2sentence(list(idx[i]), idx2word)
             result.append(' '.join(sen))
 
-        # write result
-        filename_data = config.filename_data + 'summary_' + str(epoch) + '.txt'
+    # write result
+    filename_data = config.filename_data + 'summary_' + str(epoch) + '.txt'
     with open(filename_data, 'w', encoding='utf-8') as f:
         f.write('\n'.join(result))
 
@@ -44,6 +44,6 @@ def beam_test(model, config, idx2word, epoch):
 if __name__ == '__main__':
     config = Config()
     vocab = Vocab(config)
-    filename = config.filename_model + 'model_19.pkl'
+    filename = config.filename_model + 'model_17.pkl'
     model = load_model(config, filename)
     beam_test(model, config, vocab.idx2word, 10)

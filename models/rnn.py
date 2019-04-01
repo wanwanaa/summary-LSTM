@@ -78,7 +78,7 @@ class Encoder(nn.Module):
         return h, encoder_out
 
 
-class Encoder_mulit(nn.Module):
+class Encoder_multi(nn.Module):
     def __init__(self, embeds, config):
         super().__init__()
         self.embeds = embeds
@@ -167,9 +167,10 @@ class Decoder(nn.Module):
             self.attention = Bahdanau_Attention(config)
         elif config.attn_flag == 'luong':
             self.attention = Luong_Attention(config)
-        elif config.attn_flag == 'mulit':
-            attention = Luong_Attention(config)
-            self.attention = Mulit_head(config, attention)
+        elif config.attn_flag == 'multi':
+            # attention = Luong_Attention(config)
+            # self.attention = Multi_head(config, attention)
+            self.attention = Multi_head(config)
         else:
             self.attention = None
         # intra-decoder
@@ -197,10 +198,10 @@ class Decoder(nn.Module):
 
         if self.attn_flag == 'luong':
             attn_weights, out = self.attention(out, encoder_output)
-        if self.attn_flag == 'mulit':
+        if self.attn_flag == 'multi':
             attn_weights, out = self.attention(out, encoder_output)
         # n_layer
-        # if self.attn_flag == 'mulit':
+        # if self.attn_flag == 'multi':
         #     attn_weights, out = self.attention(h[0].transpose(0, 1), encoder_output)
         if self.intra_decoder:
             attn_weights, c = self.intra_attention(out, outs)
