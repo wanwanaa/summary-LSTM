@@ -151,7 +151,7 @@ if __name__ == '__main__':
 
     ########test##########
     args.batch_size = 2
-    ########test##########
+    #######test###########
 
     if args.batch_size:
         config.batch_size = args.batch_size

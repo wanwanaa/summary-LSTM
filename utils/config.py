@@ -48,7 +48,7 @@ class Config():
 
         self.n_layer = 2
         self.cell = 'lstm'
-        self.attn_flag = 'multi'
+        self.attn_flag = False
         self.dropout = 0
         self.bidirectional = True
         self.optimzer = 'Adam'

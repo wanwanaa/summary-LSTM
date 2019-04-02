@@ -223,6 +223,33 @@ class Bahdanau_Attention(nn.Module):
         return attn_weights, context
 
 
+# class Self_attention(nn.Module):
+#     def __init__(self, config):
+#         super().__init__()
+#         self.hidden_size = config.hidden_size
+#         self.linear_enc = nn.Sequential(nn.Linear(self.hidden_size, self.hidden_size),
+#                                         nn.SELU(),
+#                                         nn.Linear(self.hidden_size, self.hidden_size))
+#         self.linear_out = nn.Sequential(nn.Linear(self.hidden_size*2, self.hidden_size),
+#                                         nn.SELU(),
+#                                         nn.Linear(self.hidden_size, self.hidden_size))
+#         self.softmax = nn.Softmax(dim=-1)
+#
+#     def forward(self, encoder_out):
+#         """
+#         :param encoder_out: (batch, time_step, hidden_size) encoder hidden state
+#         :return:context: batch, time_step, hidden_size)
+#         """
+#         enc = self.linear_enc(encoder_out) # (batch, time_step, hidden_size)
+#         h = enc.transpose(1, 2) # (batch, hidden_size, time_step)
+#         weights = torch.bmm(enc, h) # (batch, time_step, hidden_size)
+#         weights = self.softmax(weights/math.sqrt(self.hidden_size))
+#         context = torch.bmm(weights, enc) # (batch, time_step, hidden_size)
+#         context = self.linear_out(torch.cat((enc, context), 2)) + encoder_out
+#
+#         return context
+
+
 class Self_attention(nn.Module):
     def __init__(self, config):
         super().__init__()
@@ -230,6 +257,9 @@ class Self_attention(nn.Module):
         self.linear_enc = nn.Sequential(nn.Linear(self.hidden_size, self.hidden_size),
                                         nn.SELU(),
                                         nn.Linear(self.hidden_size, self.hidden_size))
+        self.linear_value = nn.Sequential(nn.Linear(self.hidden_size, self.hidden_size),
+                                          nn.SELU(),
+                                          nn.Linear(self.hidden_size, self.hidden_size))
         self.linear_out = nn.Sequential(nn.Linear(self.hidden_size*2, self.hidden_size),
                                         nn.SELU(),
                                         nn.Linear(self.hidden_size, self.hidden_size))
@@ -241,10 +271,11 @@ class Self_attention(nn.Module):
         :return:context: batch, time_step, hidden_size)
         """
         enc = self.linear_enc(encoder_out) # (batch, time_step, hidden_size)
+        value = self.linear_value(encoder_out)
         h = enc.transpose(1, 2) # (batch, hidden_size, time_step)
         weights = torch.bmm(enc, h) # (batch, time_step, hidden_size)
         weights = self.softmax(weights/math.sqrt(self.hidden_size))
-        context = torch.bmm(weights, enc) # (batch, time_step, hidden_size)
-        context = self.linear_out(torch.cat((enc, context), 2)) + encoder_out
+        context = torch.bmm(weights, value) # (batch, time_step, hidden_size)
+        context = self.linear_out(torch.cat((context, encoder_out), dim=-1))
 
         return context
