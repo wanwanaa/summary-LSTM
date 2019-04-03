@@ -29,6 +29,7 @@ def main():
     save_data(datasets.test_text, datasets.test_summary, vocab.word2idx, config.t_len, config.s_len, config.filename_trimmed_test)
 
 
+# test trimmed file result
 def test():
     config = Config()
     vocab = Vocab(config)
