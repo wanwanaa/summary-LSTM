@@ -16,7 +16,7 @@ class Seq2seq(nn.Module):
 
         self.loss_func = nn.CrossEntropyLoss()
 
-        self.linear_out = nn.Linear(config.hidden_size, config.vocab_size)
+        self.linear_out = nn.Linear(config.hidden_size, config.tgt_vocab_size)
         self.softmax = nn.Softmax(dim=-1)
 
     # add <bos> to sentence
@@ -40,7 +40,7 @@ class Seq2seq(nn.Module):
         return self.linear_out(x)
 
     def compute_loss(self, result, y):
-        result = result.contiguous().view(-1, 4000)
+        result = result.contiguous().view(-1, self.config.tgt_vocab_size)
         y = y.contiguous().view(-1)
         loss = self.loss_func(result, y)
         return loss

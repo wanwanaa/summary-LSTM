@@ -69,9 +69,9 @@ def get_trimmed_datasets(datasets, word2idx, max_length):
     return data
 
 
-def save_data(text, summary, word2idx, t_len, s_len, filename):
-    text = get_trimmed_datasets(text, word2idx, t_len)
-    summary = get_trimmed_datasets(summary, word2idx, s_len)
+def save_data(text, summary, src_word2idx, tgt_word2idx, t_len, s_len, filename):
+    text = get_trimmed_datasets(text, src_word2idx, t_len)
+    summary = get_trimmed_datasets(summary, tgt_word2idx, s_len)
     data = data_util.TensorDataset(text, summary)
     print('data save at ', filename)
     torch.save(data, filename)

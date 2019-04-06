@@ -150,7 +150,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     ########test##########
-    args.batch_size = 2
+    # args.batch_size = 2
     #######test###########
 
     if args.batch_size:
@@ -168,4 +168,4 @@ if __name__ == '__main__':
     if torch.cuda.is_available():
         model = model.cuda()
 
-    train(model, args, config, vocab.idx2word)
+    train(model, args, config, vocab.tgt_idx2word)

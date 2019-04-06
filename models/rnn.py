@@ -4,9 +4,9 @@ from models import *
 
 
 class Embeds(nn.Module):
-    def __init__(self, config, embedding=None):
+    def __init__(self, config, vocab_size, embedding=None):
         super().__init__()
-        self.vocab_size = config.vocab_size
+        self.vocab_size = vocab_size
         self.embedding_dim = config.embedding_dim
         if embedding:
             self.embeds = nn.Embedding.from_pretrained(embedding)

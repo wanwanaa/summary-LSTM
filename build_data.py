@@ -21,12 +21,12 @@ def main():
 
     # get vocab(idx2word, word2idx)
     print('Building vocab ... ...')
-    vocab = Vocab(config, datasets.train_text)
+    vocab = Vocab(config, datasets.train_text, datasets.train_summary)
 
     # save pt(train, valid, test)
-    save_data(datasets.train_text, datasets.train_summary, vocab.word2idx, config.t_len, config.s_len, config.filename_trimmed_train)
-    save_data(datasets.valid_text, datasets.valid_summary, vocab.word2idx, config.t_len, config.s_len, config.filename_trimmed_valid)
-    save_data(datasets.test_text, datasets.test_summary, vocab.word2idx, config.t_len, config.s_len, config.filename_trimmed_test)
+    save_data(datasets.train_text, datasets.train_summary, vocab.src_word2idx, vocab.tgt_word2idx, config.t_len, config.s_len, config.filename_trimmed_train)
+    save_data(datasets.valid_text, datasets.valid_summary, vocab.src_word2idx, vocab.tgt_word2idx, config.t_len, config.s_len, config.filename_trimmed_valid)
+    save_data(datasets.test_text, datasets.test_summary, vocab.src_word2idx, vocab.tgt_word2idx, config.t_len, config.s_len, config.filename_trimmed_test)
 
 
 # test trimmed file result
@@ -39,6 +39,25 @@ def test():
     print(sen)
 
 
+def write_file(datasets, filename):
+    with open(filename, 'w', encoding='utf-8') as f:
+        f.write('\n'.join(datasets))
+
+
 if __name__ == '__main__':
     main()
     # test()
+    # config = Config()
+    # datasets = Datasets(config)
+    # train_src = datasets.train_text
+    # write_file(train_src, 'src-train.txt')
+    # train_tgt = datasets.train_summary
+    # write_file(train_tgt, 'tgt-train.txt')
+    # valid_src = datasets.valid_text
+    # write_file(valid_src, 'src-valid.txt')
+    # valid_tgt = datasets.valid_summary
+    # write_file(valid_tgt, 'tgt-valid.txt')
+    # test_src = datasets.test_text
+    # write_file(test_src, 'src-test.txt')
+    # test_tgt = datasets.test_summary
+    # write_file(test_tgt, 'tgt-test.txt')
