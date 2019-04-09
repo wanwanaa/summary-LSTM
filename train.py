@@ -4,6 +4,14 @@ import pickle
 import argparse
 from utils import *
 from models import *
+import torch.nn.functional as F
+
+
+def compute_loss(result, y, config):
+    result = result.contiguous().view(-1, config.tgt_vocab_size)
+    y = y.contiguous().view(-1)
+    loss = F.cross_entropy(result, y)
+    return loss
 
 
 def save_plot(train_loss, valid_loss, test_loss, test_rouge, filename_result):
@@ -14,6 +22,8 @@ def save_plot(train_loss, valid_loss, test_loss, test_rouge, filename_result):
 
 
 def valid(model, epoch, filename, config):
+    if isinstance(model, torch.nn.DataParallel):
+        model = model.module
     model.eval()
     # data
     test_loader = data_load(filename, config.batch_size, False)
@@ -26,13 +36,16 @@ def valid(model, epoch, filename, config):
             x = x.cuda()
             y = y.cuda()
         with torch.no_grad():
-            loss, _ = model.sample(x, y)
+            result, _ = model.sample(x, y)
+            loss = compute_loss(result, y, config)
         all_loss += loss.item()
     print('epoch:', epoch, '|valid_loss: %.4f' % (all_loss / num))
     return all_loss / num
 
 
 def test(model, epoch, idx2word, config):
+    if isinstance(model, torch.nn.DataParallel):
+        model = model.module
     model.eval()
     # data
     test_loader = data_load(config.filename_trimmed_test, config.batch_size, False)
@@ -46,7 +59,8 @@ def test(model, epoch, idx2word, config):
             x = x.cuda()
             y = y.cuda()
         with torch.no_grad():
-            loss, idx = model.sample(x, y)
+            result, idx = model.sample(x, y)
+            loss = compute_loss(result, y, config)
         all_loss += loss.item()
 
         for i in range(idx.shape[0]):
@@ -95,7 +109,9 @@ def train(model, args, config, idx2word):
     test_loss = []
     test_rouge = []
 
-    for e in range(args.epoch):
+    if args.checkpoint != 0:
+        model.load_state_dict(torch.load(config.filename_model + 'model_' + str(args.checkpoint) + '.pkl'))
+    for e in range(args.checkpoint, args.epoch):
         model.train()
         all_loss = 0
         num = 0
@@ -105,7 +121,8 @@ def train(model, args, config, idx2word):
             if torch.cuda.is_available():
                 x = x.cuda()
                 y = y.cuda()
-            loss, result = model(x, y)
+            result = model(x, y)
+            loss = compute_loss(result, y, config)
 
             optim.zero_grad()
             loss.backward()
@@ -147,6 +164,7 @@ if __name__ == '__main__':
     parser.add_argument('--n_layers', '-n', type=int, default=2, help='number of gru layers')
     parser.add_argument('-seed', '-s', type=int, default=123, help="Random seed")
     parser.add_argument('--save_model', '-m', action='store_true', default=False, help="whether to save model")
+    parser.add_argument('--checkpoint', '-c', type=int, default=0, help="load model")
     args = parser.parse_args()
 
     ########test##########
@@ -167,5 +185,6 @@ if __name__ == '__main__':
     model = build_model(config)
     if torch.cuda.is_available():
         model = model.cuda()
+        model = torch.nn.DataParallel(model)
 
     train(model, args, config, vocab.tgt_idx2word)

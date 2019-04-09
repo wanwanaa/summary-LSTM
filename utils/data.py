@@ -2,6 +2,7 @@ import torch
 import torch.utils.data as data_util
 import numpy as np
 from scipy.stats import truncnorm
+import jieba
 
 
 class Datasets():
@@ -47,11 +48,16 @@ class Datasets():
 
 
 # save pt
-def get_trimmed_datasets(datasets, word2idx, max_length):
+def get_trimmed_datasets(datasets, word2idx, max_length, word_seg):
     data = np.zeros([len(datasets), max_length])
     k = 0
     for line in datasets:
-        line = list(line)
+        if word_seg:
+            line = line.strip()
+            line = jieba.cut(line)
+            line = list(line)
+        else:
+            line = list(line)
         sen = np.zeros(max_length, dtype=np.int32)
         for i in range(max_length):
             if i == len(line):
@@ -70,8 +76,8 @@ def get_trimmed_datasets(datasets, word2idx, max_length):
 
 
 def save_data(text, summary, src_word2idx, tgt_word2idx, t_len, s_len, filename):
-    text = get_trimmed_datasets(text, src_word2idx, t_len)
-    summary = get_trimmed_datasets(summary, tgt_word2idx, s_len)
+    text = get_trimmed_datasets(text, src_word2idx, t_len, True)
+    summary = get_trimmed_datasets(summary, tgt_word2idx, s_len, False)
     data = data_util.TensorDataset(text, summary)
     print('data save at ', filename)
     torch.save(data, filename)

@@ -35,7 +35,7 @@ def test():
     vocab = Vocab(config)
 
     test = torch.load(config.filename_trimmed_test)
-    sen = index2sentence(np.array(test[0][0]), vocab.idx2word)
+    sen = index2sentence(np.array(test[0][0]), vocab.src_idx2word)
     print(sen)
 
 
@@ -45,8 +45,16 @@ def write_file(datasets, filename):
 
 
 if __name__ == '__main__':
-    main()
-    # test()
+    # config = Config()
+    # vocab = Vocab(config)
+    # datasets = Datasets(config)
+    # save_data(datasets.train_text, datasets.train_summary, vocab.src_word2idx, vocab.tgt_word2idx, config.t_len,
+    #           config.s_len, config.filename_trimmed_train)
+    # main()
+    test()
+    # config = Config()
+    # vocab = Vocab(config)
+    # print(vocab.src_word2idx)
     # config = Config()
     # datasets = Datasets(config)
     # train_src = datasets.train_text

@@ -17,11 +17,13 @@ class Config():
         # vocab
         self.src_filename_word2idx = 'DATA/data/src_word2index.pkl'
         self.src_filename_idx2word = 'DATA/data/src_index2word.pkl'
-        self.src_vocab_size = 10599
+        self.src_vocab_size = 961195
+        # self.src_vocab_size = 4000
 
         self.tgt_filename_word2idx = 'DATA/data/tgt_word2index.pkl'
         self.tgt_filename_idx2word = 'DATA/data/tgt_index2word.pkl'
         self.tgt_vocab_size = 8250
+        # self.tgt_vocab_size = 4000
 
         self.word_share = False
         self.word_seg = True # hybird word-character

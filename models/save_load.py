@@ -20,6 +20,8 @@ def build_model(config):
 
 def load_model(config, filename):
     model = build_model(config)
+    if isinstance(model, torch.nn.DataParallel):
+        model = model.module
     model.load_state_dict(torch.load(filename, map_location='cpu'))
     return model
 

@@ -39,11 +39,11 @@ class Seq2seq(nn.Module):
         """
         return self.linear_out(x)
 
-    def compute_loss(self, result, y):
-        result = result.contiguous().view(-1, self.config.tgt_vocab_size)
-        y = y.contiguous().view(-1)
-        loss = self.loss_func(result, y)
-        return loss
+    # def compute_loss(self, result, y):
+    #     result = result.contiguous().view(-1, self.config.tgt_vocab_size)
+    #     y = y.contiguous().view(-1)
+    #     loss = self.loss_func(result, y)
+    #     return loss
 
     def forward(self, x, y):
         """
@@ -78,8 +78,8 @@ class Seq2seq(nn.Module):
         outputs = torch.stack(result).transpose(0, 1)
         # print('result:', outputs.size())
         # print('result:', y.size())
-        loss = self.compute_loss(outputs, y)
-        return loss, outputs
+        # loss = self.compute_loss(outputs, y)
+        return outputs
 
     def sample(self, x, y):
         h, encoder_out = self.encoder(x)
@@ -111,8 +111,8 @@ class Seq2seq(nn.Module):
             idx.append(out.cpu().numpy())
         result = torch.stack(result).transpose(0, 1)
         idx = np.transpose(np.array(idx))
-        loss = self.compute_loss(result, y)
-        return loss, idx
+        # loss = self.compute_loss(result, y)
+        return result, idx
 
     def beam_search(self, x):
         h, encoder_out = self.encoder(x)
