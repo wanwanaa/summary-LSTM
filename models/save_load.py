@@ -1,14 +1,21 @@
 from models.attention import *
 from models.rnn import *
 from models.seq2seq import *
+from models.embedding import *
 
 
 def build_model(config):
-    enc_embeds = Embeds(config, config.src_vocab_size)
+    if config.bert:
+        enc_embeds = Bert_Embeds(config)
+    else:
+        enc_embeds = Embeds(config, config.src_vocab_size)
     if config.word_share:
         dec_embeds = enc_embeds
     else:
-        dec_embeds = Embeds(config, config.tgt_vocab_size)
+        if config.bert:
+            dec_embeds = Bert_Embeds(config)
+        else:
+            dec_embeds = Embeds(config, config.src_vocab_size)
     # if config.attn_flag == 'multi':
     #     encoder = Encoder_multi(embeds, config)
     # else:

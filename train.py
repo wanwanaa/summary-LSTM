@@ -1,6 +1,7 @@
 import torch
 import numpy as np
 import pickle
+from pytorch_pretrained_bert import BertTokenizer
 import argparse
 from utils import *
 from models import *
@@ -64,7 +65,10 @@ def test(model, epoch, idx2word, config):
         all_loss += loss.item()
 
         for i in range(idx.shape[0]):
-            sen = index2sentence(list(idx[i]), idx2word)
+            if config.bert:
+                sen = tokenizer.convert_tokens_to_ids(idx[i])
+            else:
+                sen = index2sentence(list(idx[i]), idx2word)
             result.append(' '.join(sen))
     print('epoch:', epoch, '|test_loss: %.4f' % (all_loss / num))
 
@@ -156,7 +160,11 @@ def train(model, args, config, idx2word):
 
 if __name__ == '__main__':
     config = Config()
-    vocab = Vocab(config)
+    if config.bert:
+        tokenizer = BertTokenizer.from_pretrained('bert-base-chinese')
+    else:
+        vocab = Vocab(config)
+        tokenizer = vocab.tgt_idx2word
 
     parser = argparse.ArgumentParser()
     parser.add_argument('--batch_size', '-b', type=int, default=64, help='batch size for train')
@@ -168,7 +176,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     ########test##########
-    # args.batch_size = 2
+    args.batch_size = 2
     #######test###########
 
     if args.batch_size:
@@ -187,4 +195,4 @@ if __name__ == '__main__':
         model = model.cuda()
         model = torch.nn.DataParallel(model)
 
-    train(model, args, config, vocab.tgt_idx2word)
+    train(model, args, config, tokenizer)

@@ -3,24 +3,6 @@ import torch.nn as nn
 from models import *
 
 
-class Embeds(nn.Module):
-    def __init__(self, config, vocab_size, embedding=None):
-        super().__init__()
-        self.vocab_size = vocab_size
-        self.embedding_dim = config.embedding_dim
-        if embedding:
-            self.embeds = nn.Embedding.from_pretrained(embedding)
-        else:
-            self.embeds = nn.Embedding(self.vocab_size, self.embedding_dim)
-
-    def forward(self, x):
-        """
-        :param x: (batch, t_len)
-        :return: (batch, t_len, embedding_dim
-        """
-        return self.embeds(x)
-
-
 class Encoder(nn.Module):
     def __init__(self, embeds, config):
         super().__init__()
@@ -29,6 +11,7 @@ class Encoder(nn.Module):
         self.cell = config.cell
         self.bidirectional = config.bidirectional
         self.hidden_size = config.hidden_size
+        self.bert = config.bert
 
         if config.cell == 'lstm':
             self.rnn = nn.LSTM(

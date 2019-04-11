@@ -66,6 +66,7 @@ class Seq2seq(nn.Module):
         else:
             outs = None
         for i in range(self.s_len):
+            # print(outs.size())
             _, out, h = self.decoder(y_c[:, i], h, encoder_out, outs)
             if self.config.intra_decoder:
                 if i == 0:

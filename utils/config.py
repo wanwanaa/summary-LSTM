@@ -25,8 +25,8 @@ class Config():
         self.tgt_vocab_size = 8250
         # self.tgt_vocab_size = 4000
 
-        self.word_share = False
-        self.word_seg = True # hybird word-character
+        self.word_share = True
+        self.word_seg = False # hybird word-character
 
         # sequence length
         self.t_len = 150
@@ -48,8 +48,8 @@ class Config():
         self.LR = 0.0003
         self.batch_size = 2
         self.iters = 10000
-        self.embedding_dim = 512
-        self.hidden_size = 512
+        self.embedding_dim = 768
+        self.hidden_size = 768
         self.beam_size = 10
 
         # transformer multi-head attention
@@ -63,3 +63,6 @@ class Config():
         self.optimzer = 'Adam'
         self.intra_decoder = False
         self.enc_attn = False
+
+        self.bert = True
+        self.fine_tuning = False
