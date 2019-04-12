@@ -10,8 +10,8 @@ from tqdm import tqdm
 import torch.nn.functional as F
 
 
-def compute_loss(result, y, config):
-    result = result.contiguous().view(-1, config.tgt_vocab_size)
+def compute_loss(result, y, size):
+    result = result.contiguous().view(-1, size)
     y = y.contiguous().view(-1)
     loss = F.cross_entropy(result, y)
     return loss
@@ -128,14 +128,14 @@ def train(model, args, config, idx2word):
                 x = x.cuda()
                 y = y.cuda()
             result = model(x, y)
-            loss = compute_loss(result, y, config)
+            loss = compute_loss(result, y, model.encoder.embeds.model.config.vocab_size)
 
             optim.zero_grad()
             loss.backward()
             optim.step()
 
             all_loss += loss.item()
-            if step % 200 == 0:
+            if step % 2 == 0:
                 print('epoch:', e, '|step:', step, '|train_loss: %.4f' % loss.item())
 
         # train loss
@@ -148,11 +148,11 @@ def train(model, args, config, idx2word):
             save_model(model, filename)
 
         # valid
-        loss_v = valid(model, e, config.filename_trimmed_valid, config)
+        loss_v = valid(model, e, config.filename_trimmed_valid, model.encoder.embeds.model.config.vocab_size)
         valid_loss.append(loss_v)
 
         # test
-        rouge, loss_t = test(model, e, idx2word, config)
+        rouge, loss_t = test(model, e, idx2word, model.encoder.embeds.model.config.vocab_size)
         test_loss.append(loss_t)
         test_rouge.append(rouge)
 
@@ -200,4 +200,4 @@ if __name__ == '__main__':
         model = torch.nn.DataParallel(model)
 
     # print(sys.getsizeof(model))
-    # train(model, args, config, tokenizer)
+    train(model, args, config, tokenizer)

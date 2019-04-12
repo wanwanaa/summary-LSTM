@@ -65,7 +65,7 @@ class Config():
         self.intra_decoder = False
         self.enc_attn = False
 
-        # bert
+        # bert (word_share=True)
         self.bert = True
         self.fine_tuning = True
         self.filename_bert = ''

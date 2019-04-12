@@ -133,6 +133,8 @@ class Decoder(nn.Module):
         self.attn_flag = config.attn_flag
         self.cell = config.cell
         self.intra_decoder = config.intra_decoder
+        self.bert = config.bert
+        self.fine_tune = config.fine_tuning
 
         if config.cell == 'lstm':
             self.rnn = nn.LSTM(
