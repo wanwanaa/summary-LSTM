@@ -1,6 +1,7 @@
 import torch
 import torch.nn as nn
-from pytorch_pretrained_bert import BertModel
+from pytorch_pretrained_bert import BertModel, BertConfig
+import os
 
 
 class Embeds(nn.Module):
@@ -24,19 +25,31 @@ class Embeds(nn.Module):
 class Bert_Embeds(nn.Module):
     def __init__(self, config):
         super().__init__()
-        if config.fine_tuning:
-            pass
-            # self.model = BertModel(bert_config)
-        else:
-            self.model = BertModel.from_pretrained('bert-base-chinese')
-        # self.linear_out = nn.Linear(12*786, config.embedding_dim)
+        # if config.train:
+        #     if torch.cuda.is_available():
+        #         self.model = BertModel.from_pretrained('bert-base-chinese',
+        #                                                cache_dir=os.path.join(config.filename_cache,
+        #                                                                       'distributed_{}'.format(config.local_rank)))
+        #     else:
+        #         self.model = BertModel.from_pretrained('bert-base-chinese',
+        #                                                cache_dir=os.path.join(config.filename_cache, 'distributed'))
+        #     # self.model = BertModel(bert_config)
+        # else:
+        #     # self.model = BertModel.from_pretrained('bert-base-chinese')
+        #     bert_config = BertConfig()
+        #     self.model = BertModel(bert_config)
+        # # self.linear_out = nn.Linear(12*786, config.embedding_dim)
+        self.model = BertModel.from_pretrained('bert-base-chinese')
 
     def forward(self, ids):
         #  ids(batch, len)
         # print(ids.size())
         if len(ids.size()) == 1:
             ids = ids.unsqueeze(1)
-        segment_ids = torch.ones(ids.size()).type(torch.LongTensor)
+        if torch.cuda.is_available():
+            segment_ids = torch.ones(ids.size()).type(torch.cuda.LongTensor)
+        else:
+            segment_ids = torch.ones(ids.size()).type(torch.LongTensor)
         encoded_layers, _ = self.model(ids, segment_ids)
         # # print(encoded_layers[0].size())
         # h = torch.cat((encoded_layers[0], encoded_layers[1]), dim=2)

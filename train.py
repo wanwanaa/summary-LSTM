@@ -1,10 +1,12 @@
 import torch
 import numpy as np
 import pickle
+import sys
 from pytorch_pretrained_bert import BertTokenizer
 import argparse
 from utils import *
 from models import *
+from tqdm import tqdm
 import torch.nn.functional as F
 
 
@@ -119,7 +121,7 @@ def train(model, args, config, idx2word):
         model.train()
         all_loss = 0
         num = 0
-        for step, batch in enumerate(train_loader):
+        for step, batch in enumerate(tqdm(train_loader)):
             num += 1
             x, y = batch
             if torch.cuda.is_available():
@@ -141,6 +143,10 @@ def train(model, args, config, idx2word):
         print('epoch:', e, '|train_loss: %.4f' % loss)
         train_loss.append(loss)
 
+        if args.save_model:
+            filename = config.filename_model + 'model_' + str(e) + '.pkl'
+            save_model(model, filename)
+
         # valid
         loss_v = valid(model, e, config.filename_trimmed_valid, config)
         valid_loss.append(loss_v)
@@ -149,10 +155,6 @@ def train(model, args, config, idx2word):
         rouge, loss_t = test(model, e, idx2word, config)
         test_loss.append(loss_t)
         test_rouge.append(rouge)
-
-        if args.save_model:
-            filename = config.filename_model + 'model_' + str(e) + '.pkl'
-            save_model(model, filename)
 
     # # write result
     # save_plot(test_loss, valid_loss, test_loss, test_rouge, config.filename_data)
@@ -163,8 +165,10 @@ if __name__ == '__main__':
     if config.bert:
         tokenizer = BertTokenizer.from_pretrained('bert-base-chinese')
     else:
-        vocab = Vocab(config)
-        tokenizer = vocab.tgt_idx2word
+        # vocab = Vocab(config)
+        # tokenizer = vocab.tgt_idx2word
+        f = open(config.tgt_filename_idx2word, 'rb')
+        tokenizer = pickle.load(f)
 
     parser = argparse.ArgumentParser()
     parser.add_argument('--batch_size', '-b', type=int, default=64, help='batch size for train')
@@ -195,4 +199,5 @@ if __name__ == '__main__':
         model = model.cuda()
         model = torch.nn.DataParallel(model)
 
-    train(model, args, config, tokenizer)
+    # print(sys.getsizeof(model))
+    # train(model, args, config, tokenizer)

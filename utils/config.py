@@ -17,16 +17,17 @@ class Config():
         # vocab
         self.src_filename_word2idx = 'DATA/data/src_word2index.pkl'
         self.src_filename_idx2word = 'DATA/data/src_index2word.pkl'
-        self.src_vocab_size = 961195
+        # self.src_vocab_size = 961195
         # self.src_vocab_size = 4000
 
         self.tgt_filename_word2idx = 'DATA/data/tgt_word2index.pkl'
         self.tgt_filename_idx2word = 'DATA/data/tgt_index2word.pkl'
-        self.tgt_vocab_size = 8250
+        # self.tgt_vocab_size = 8250
         # self.tgt_vocab_size = 4000
 
+        # hybird word-character
         self.word_share = True
-        self.word_seg = False # hybird word-character
+        self.word_seg = False
 
         # sequence length
         self.t_len = 150
@@ -57,12 +58,16 @@ class Config():
 
         self.n_layer = 2
         self.cell = 'lstm'
-        self.attn_flag = False
+        self.attn_flag = 'loung'
         self.dropout = 0
         self.bidirectional = True
         self.optimzer = 'Adam'
         self.intra_decoder = False
         self.enc_attn = False
 
+        # bert
         self.bert = True
-        self.fine_tuning = False
+        self.fine_tuning = True
+        self.filename_bert = ''
+        self.filename_cache = 'cache'
+        self.local_rank = 2

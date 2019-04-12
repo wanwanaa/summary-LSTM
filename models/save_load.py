@@ -15,7 +15,7 @@ def build_model(config):
         if config.bert:
             dec_embeds = Bert_Embeds(config)
         else:
-            dec_embeds = Embeds(config, config.src_vocab_size)
+            dec_embeds = Embeds(config, config.tgt_vocab_size)
     # if config.attn_flag == 'multi':
     #     encoder = Encoder_multi(embeds, config)
     # else:
