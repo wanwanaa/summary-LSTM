@@ -180,7 +180,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     ########test##########
-    args.batch_size = 2
+    # args.batch_size = 2
     #######test###########
 
     if args.batch_size:
