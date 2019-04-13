@@ -42,7 +42,7 @@ class Bert_Embeds(nn.Module):
         self.model = BertModel.from_pretrained('bert-base-chinese')
 
     def forward(self, ids):
-        #  ids(batch, len)
+        # ids(batch, len)
         # print(ids.size())
         if len(ids.size()) == 1:
             ids = ids.unsqueeze(1)

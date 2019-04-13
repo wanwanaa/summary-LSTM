@@ -178,11 +178,20 @@ class Decoder(nn.Module):
                   h (batch, n_layer, hidden_size) decoder hidden state
         """
         attn_weights = None
-        if self.bert and self.fine_tune is False:
-            with torch.no_grad():
-                e = self.embeds(x).unsqueeze(1) # (batch, 1, embedding_dim)
+        if self.bert:
+            if self.fine_tune:
+                e = self.embeds(x)
+                if len(e.size()) == 2:
+                    e = e.unsqueeze(1)  # (batch, 1, embedding_dim)
+                e = e[:, -1, :].unsqueeze(1)
+            else:
+                with torch.no_grad():
+                    e = self.embeds(x)
+                    if len(e.size()) == 2:
+                        e = e.unsqueeze(1)  # (batch, 1, embedding_dim)
+                    e = e[:, -1, :].unsqueeze(1)
         else:
-            e = self.embeds(x).unsqueeze(1) # (batch, 1, embedding_dim)
+            e = self.embeds(x[:, -1]).unsqueeze(1) # (batch, len, embedding_dim)
         if self.attn_flag == 'bahdanau':
             if self.cell == 'lstm':
                 attn_weights, e = self.attention(e, h[0], encoder_output)

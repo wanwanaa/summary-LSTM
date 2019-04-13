@@ -67,7 +67,7 @@ class Config():
 
         # bert (word_share=True)
         self.bert = True
-        self.fine_tuning = True
+        self.fine_tuning = False
         self.filename_bert = ''
         self.filename_cache = 'cache'
         self.local_rank = 2

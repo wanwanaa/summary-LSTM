@@ -25,7 +25,7 @@ class Beam():
     def get_node(self):
         a = []
         for i in range(len(self.path)):
-            node = self.path[i][0][-1]
+            node = self.path[i][0]
             a.append(torch.tensor(node).type(torch.LongTensor))
         return torch.stack(a)
 
