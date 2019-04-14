@@ -16,7 +16,12 @@ class Seq2seq(nn.Module):
 
         self.loss_func = nn.CrossEntropyLoss()
         if config.bert:
-            self.linear_out = nn.Linear(config.hidden_size, self.encoder.embeds.model.config.vocab_size)
+            if isinstance(encoder, torch.nn.DataParallel):
+                vocab_size = encoder.module.embeds.model.config.vocab_size
+            else:
+                vocab_size = encoder.embeds.model.config.vocab_size
+                print(vocab_size)
+            self.linear_out = nn.Linear(config.hidden_size, vocab_size)
         else:
             self.linear_out = nn.Linear(config.hidden_size, config.tgt_vocab_size)
         self.softmax = nn.Softmax(dim=-1)
@@ -86,7 +91,7 @@ class Seq2seq(nn.Module):
 
     def sample(self, x, y):
         h, encoder_out = self.encoder(x)
-        all_out = torch.ones(x.size(0)) * self.bos
+        all_out = torch.ones(x.size(0), 1) * self.bos
         result = []
         idx = []
         if self.config.intra_decoder:
@@ -111,8 +116,10 @@ class Seq2seq(nn.Module):
             result.append(gen)
             gen = self.softmax(gen)
             out = torch.argmax(gen, dim=1)
-            all_out = torch.cat((all_out, out), dim=1)
             idx.append(out.cpu().numpy())
+            out = out.unsqueeze(1)
+            all_out = torch.cat((all_out, out), dim=1)
+
         result = torch.stack(result).transpose(0, 1)
         idx = np.transpose(np.array(idx))
         # loss = self.compute_loss(result, y)

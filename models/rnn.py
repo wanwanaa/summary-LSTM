@@ -45,9 +45,12 @@ class Encoder(nn.Module):
         :return: gru_h(n_layer, batch, hidden_size) lstm_h(h, c)
                   out(batch, t_len, hidden_size)
         """
-        if self.bert and self.fine_tune is False:
-            with torch.no_grad():
+        if self.bert:
+            if self.fine_tune:
                 e = self.embeds(x)
+            else:
+                with torch.no_grad():
+                    e = self.embeds(x)
         else:
             e = self.embeds(x)
         # out (batch, time_step, hidden_size*bidirection)

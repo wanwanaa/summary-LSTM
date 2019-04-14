@@ -47,9 +47,9 @@ class Bert_Embeds(nn.Module):
         if len(ids.size()) == 1:
             ids = ids.unsqueeze(1)
         if torch.cuda.is_available():
-            segment_ids = torch.ones(ids.size()).type(torch.cuda.LongTensor)
+            segment_ids = torch.zeros(ids.size()).type(torch.cuda.LongTensor)
         else:
-            segment_ids = torch.ones(ids.size()).type(torch.LongTensor)
+            segment_ids = torch.zeros(ids.size()).type(torch.LongTensor)
         encoded_layers, _ = self.model(ids, segment_ids)
         # # print(encoded_layers[0].size())
         # h = torch.cat((encoded_layers[0], encoded_layers[1]), dim=2)

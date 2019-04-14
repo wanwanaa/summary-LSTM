@@ -34,7 +34,7 @@ def test():
     config = Config()
     vocab = Vocab(config)
 
-    test = torch.load(config.filename_trimmed_test)
+    test = torch.load('DATA/data_hybird/test.pt')
     sen = index2sentence(np.array(test[0][0]), vocab.src_idx2word)
     print(sen)
 

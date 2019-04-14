@@ -40,7 +40,14 @@ def valid(model, epoch, filename, config):
             y = y.cuda()
         with torch.no_grad():
             result, _ = model.sample(x, y)
-            loss = compute_loss(result, y, config)
+            if config.bert:
+                if isinstance(model, torch.nn.DataParallel):
+                    vocab_size = model.module.encoder.embeds.model.config.vocab_size
+                else:
+                    vocab_size = model.encoder.embeds.model.config.vocab_size
+                loss = compute_loss(result, y, vocab_size)
+            else:
+                loss = compute_loss(result, y, config.tgt_vocab_size)
         all_loss += loss.item()
     print('epoch:', epoch, '|valid_loss: %.4f' % (all_loss / num))
     return all_loss / num
@@ -62,13 +69,25 @@ def test(model, epoch, idx2word, config):
             x = x.cuda()
             y = y.cuda()
         with torch.no_grad():
-            result, idx = model.sample(x, y)
-            loss = compute_loss(result, y, config)
+            out, idx = model.sample(x, y)
+            if config.bert:
+                if isinstance(model, torch.nn.DataParallel):
+                    vocab_size = model.module.encoder.embeds.model.config.vocab_size
+                else:
+                    vocab_size = model.encoder.embeds.model.config.vocab_size
+                loss = compute_loss(out, y, vocab_size)
+            else:
+                loss = compute_loss(out, y, config.tgt_vocab_size)
         all_loss += loss.item()
 
         for i in range(idx.shape[0]):
             if config.bert:
-                sen = tokenizer.convert_tokens_to_ids(idx[i])
+                temp = []
+                for i in list(idx[i]):
+                    if i == 102:
+                        break
+                    temp.append(i)
+                sen = tokenizer.convert_ids_to_tokens(temp)
             else:
                 sen = index2sentence(list(idx[i]), idx2word)
             result.append(' '.join(sen))
@@ -128,15 +147,21 @@ def train(model, args, config, idx2word):
                 x = x.cuda()
                 y = y.cuda()
             result = model(x, y)
-            loss = compute_loss(result, y, model.encoder.embeds.model.config.vocab_size)
+            if config.bert:
+                loss = compute_loss(result, y, model.encoder.embeds.model.config.vocab_size)
+            else:
+                loss = compute_loss(result, y, config.tgt_vocab_size)
 
             optim.zero_grad()
             loss.backward()
             optim.step()
 
             all_loss += loss.item()
-            if step % 2 == 0:
+            if step % 200 == 0:
                 print('epoch:', e, '|step:', step, '|train_loss: %.4f' % loss.item())
+            # if step == 2:
+            #     print('epoch:', e, '|step:', step, '|train_loss: %.4f' % loss.item())
+            #     break
 
         # train loss
         loss = all_loss / num
@@ -148,11 +173,11 @@ def train(model, args, config, idx2word):
             save_model(model, filename)
 
         # valid
-        loss_v = valid(model, e, config.filename_trimmed_valid, model.encoder.embeds.model.config.vocab_size)
+        loss_v = valid(model, e, config.filename_trimmed_valid, config)
         valid_loss.append(loss_v)
 
         # test
-        rouge, loss_t = test(model, e, idx2word, model.encoder.embeds.model.config.vocab_size)
+        rouge, loss_t = test(model, e, idx2word, config)
         test_loss.append(loss_t)
         test_rouge.append(rouge)
 
@@ -180,7 +205,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     ########test##########
-    # args.batch_size = 2
+    args.batch_size = 2
     #######test###########
 
     if args.batch_size:
@@ -197,6 +222,7 @@ if __name__ == '__main__':
     model = build_model(config)
     if torch.cuda.is_available():
         model = model.cuda()
+    if isinstance(model, torch.nn.DataParallel):
         model = torch.nn.DataParallel(model)
 
     # print(sys.getsizeof(model))
