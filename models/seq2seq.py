@@ -15,15 +15,8 @@ class Seq2seq(nn.Module):
         self.config = config
 
         self.loss_func = nn.CrossEntropyLoss()
-        if config.bert:
-            if isinstance(encoder, torch.nn.DataParallel):
-                vocab_size = encoder.module.embeds.model.config.vocab_size
-            else:
-                vocab_size = encoder.embeds.model.config.vocab_size
-                print(vocab_size)
-            self.linear_out = nn.Linear(config.hidden_size, vocab_size)
-        else:
-            self.linear_out = nn.Linear(config.hidden_size, config.tgt_vocab_size)
+
+        self.linear_out = nn.Linear(config.hidden_size, config.tgt_vocab_size)
         self.softmax = nn.Softmax(dim=-1)
 
     # add <bos> to sentence
@@ -74,7 +67,7 @@ class Seq2seq(nn.Module):
             outs = None
         for i in range(self.s_len):
             # print(outs.size())
-            _, out, h = self.decoder(y_c[:, :i+1], h, encoder_out, outs)
+            _, out, h = self.decoder(y_c[:, i], h, encoder_out, outs)
             if self.config.intra_decoder:
                 if i == 0:
                     outs = h[0].transpose(0, 1)[:, 1, :].unsqueeze(1)
@@ -91,7 +84,7 @@ class Seq2seq(nn.Module):
 
     def sample(self, x, y):
         h, encoder_out = self.encoder(x)
-        all_out = torch.ones(x.size(0), 1) * self.bos
+        out = torch.ones(x.size(0)) * self.bos
         result = []
         idx = []
         if self.config.intra_decoder:
@@ -103,10 +96,10 @@ class Seq2seq(nn.Module):
             outs = None
         for i in range(self.s_len):
             if torch.cuda.is_available():
-                all_out = all_out.type(torch.cuda.LongTensor)
+                out = out.type(torch.cuda.LongTensor)
             else:
-                all_out = all_out.type(torch.LongTensor)
-            _, out, h = self.decoder(all_out, h, encoder_out, outs)
+                out = out.type(torch.LongTensor)
+            _, out, h = self.decoder(out, h, encoder_out, outs)
             if self.config.intra_decoder:
                 if i == 0:
                     outs = h[0].transpose(0, 1)[:, 1, :].unsqueeze(1)
@@ -117,9 +110,6 @@ class Seq2seq(nn.Module):
             gen = self.softmax(gen)
             out = torch.argmax(gen, dim=1)
             idx.append(out.cpu().numpy())
-            out = out.unsqueeze(1)
-            all_out = torch.cat((all_out, out), dim=1)
-
         result = torch.stack(result).transpose(0, 1)
         idx = np.transpose(np.array(idx))
         # loss = self.compute_loss(result, y)

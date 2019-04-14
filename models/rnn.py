@@ -11,8 +11,6 @@ class Encoder(nn.Module):
         self.cell = config.cell
         self.bidirectional = config.bidirectional
         self.hidden_size = config.hidden_size
-        self.bert = config.bert
-        self.fine_tune = config.fine_tuning
 
         if config.cell == 'lstm':
             self.rnn = nn.LSTM(
@@ -45,14 +43,7 @@ class Encoder(nn.Module):
         :return: gru_h(n_layer, batch, hidden_size) lstm_h(h, c)
                   out(batch, t_len, hidden_size)
         """
-        if self.bert:
-            if self.fine_tune:
-                e = self.embeds(x)
-            else:
-                with torch.no_grad():
-                    e = self.embeds(x)
-        else:
-            e = self.embeds(x)
+        e = self.embeds(x)
         # out (batch, time_step, hidden_size*bidirection)
         # h (batch, n_layers*bidirection, hidden_size)
         encoder_out, h = self.rnn(e)
@@ -136,8 +127,6 @@ class Decoder(nn.Module):
         self.attn_flag = config.attn_flag
         self.cell = config.cell
         self.intra_decoder = config.intra_decoder
-        self.bert = config.bert
-        self.fine_tune = config.fine_tuning
 
         if config.cell == 'lstm':
             self.rnn = nn.LSTM(
@@ -181,20 +170,7 @@ class Decoder(nn.Module):
                   h (batch, n_layer, hidden_size) decoder hidden state
         """
         attn_weights = None
-        if self.bert:
-            if self.fine_tune:
-                e = self.embeds(x)
-                if len(e.size()) == 2:
-                    e = e.unsqueeze(1)  # (batch, 1, embedding_dim)
-                e = e[:, -1, :].unsqueeze(1)
-            else:
-                with torch.no_grad():
-                    e = self.embeds(x)
-                    if len(e.size()) == 2:
-                        e = e.unsqueeze(1)  # (batch, 1, embedding_dim)
-                    e = e[:, -1, :].unsqueeze(1)
-        else:
-            e = self.embeds(x[:, -1]).unsqueeze(1) # (batch, len, embedding_dim)
+        e = self.embeds(x).unsqueeze(1) # (batch, 1, embedding_dim)
         if self.attn_flag == 'bahdanau':
             if self.cell == 'lstm':
                 attn_weights, e = self.attention(e, h[0], encoder_output)

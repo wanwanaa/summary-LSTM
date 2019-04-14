@@ -1,8 +1,6 @@
 import torch
 import numpy as np
 import pickle
-import sys
-from pytorch_pretrained_bert import BertTokenizer
 import argparse
 from utils import *
 from models import *
@@ -10,8 +8,8 @@ from tqdm import tqdm
 import torch.nn.functional as F
 
 
-def compute_loss(result, y, size):
-    result = result.contiguous().view(-1, size)
+def compute_loss(result, y, config):
+    result = result.contiguous().view(-1, config.tgt_vocab_size)
     y = y.contiguous().view(-1)
     loss = F.cross_entropy(result, y)
     return loss
@@ -40,14 +38,7 @@ def valid(model, epoch, filename, config):
             y = y.cuda()
         with torch.no_grad():
             result, _ = model.sample(x, y)
-            if config.bert:
-                if isinstance(model, torch.nn.DataParallel):
-                    vocab_size = model.module.encoder.embeds.model.config.vocab_size
-                else:
-                    vocab_size = model.encoder.embeds.model.config.vocab_size
-                loss = compute_loss(result, y, vocab_size)
-            else:
-                loss = compute_loss(result, y, config.tgt_vocab_size)
+            loss = compute_loss(result, y, config)
         all_loss += loss.item()
     print('epoch:', epoch, '|valid_loss: %.4f' % (all_loss / num))
     return all_loss / num
@@ -70,26 +61,11 @@ def test(model, epoch, idx2word, config):
             y = y.cuda()
         with torch.no_grad():
             out, idx = model.sample(x, y)
-            if config.bert:
-                if isinstance(model, torch.nn.DataParallel):
-                    vocab_size = model.module.encoder.embeds.model.config.vocab_size
-                else:
-                    vocab_size = model.encoder.embeds.model.config.vocab_size
-                loss = compute_loss(out, y, vocab_size)
-            else:
-                loss = compute_loss(out, y, config.tgt_vocab_size)
+            loss = compute_loss(out, y, config)
         all_loss += loss.item()
 
         for i in range(idx.shape[0]):
-            if config.bert:
-                temp = []
-                for i in list(idx[i]):
-                    if i == 102:
-                        break
-                    temp.append(i)
-                sen = tokenizer.convert_ids_to_tokens(temp)
-            else:
-                sen = index2sentence(list(idx[i]), idx2word)
+            sen = index2sentence(list(idx[i]), idx2word)
             result.append(' '.join(sen))
     print('epoch:', epoch, '|test_loss: %.4f' % (all_loss / num))
 
@@ -147,10 +123,7 @@ def train(model, args, config, idx2word):
                 x = x.cuda()
                 y = y.cuda()
             result = model(x, y)
-            if config.bert:
-                loss = compute_loss(result, y, model.encoder.embeds.model.config.vocab_size)
-            else:
-                loss = compute_loss(result, y, config.tgt_vocab_size)
+            loss = compute_loss(result, y, config)
 
             optim.zero_grad()
             loss.backward()
@@ -159,18 +132,11 @@ def train(model, args, config, idx2word):
             all_loss += loss.item()
             if step % 200 == 0:
                 print('epoch:', e, '|step:', step, '|train_loss: %.4f' % loss.item())
-            # if step == 2:
-            #     print('epoch:', e, '|step:', step, '|train_loss: %.4f' % loss.item())
-            #     break
 
         # train loss
         loss = all_loss / num
         print('epoch:', e, '|train_loss: %.4f' % loss)
         train_loss.append(loss)
-
-        if args.save_model:
-            filename = config.filename_model + 'model_' + str(e) + '.pkl'
-            save_model(model, filename)
 
         # valid
         loss_v = valid(model, e, config.filename_trimmed_valid, config)
@@ -181,19 +147,18 @@ def train(model, args, config, idx2word):
         test_loss.append(loss_t)
         test_rouge.append(rouge)
 
+        if args.save_model:
+            filename = config.filename_model + 'model_' + str(e) + '.pkl'
+            save_model(model, filename)
+
     # # write result
     # save_plot(test_loss, valid_loss, test_loss, test_rouge, config.filename_data)
 
 
 if __name__ == '__main__':
     config = Config()
-    if config.bert:
-        tokenizer = BertTokenizer.from_pretrained('bert-base-chinese')
-    else:
-        # vocab = Vocab(config)
-        # tokenizer = vocab.tgt_idx2word
-        f = open(config.tgt_filename_idx2word, 'rb')
-        tokenizer = pickle.load(f)
+    vocab = Vocab(config)
+    tokenizer = vocab.tgt_idx2word
 
     parser = argparse.ArgumentParser()
     parser.add_argument('--batch_size', '-b', type=int, default=64, help='batch size for train')
@@ -205,7 +170,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     ########test##########
-    args.batch_size = 2
+    # args.batch_size = 2
     #######test###########
 
     if args.batch_size:
@@ -222,8 +187,6 @@ if __name__ == '__main__':
     model = build_model(config)
     if torch.cuda.is_available():
         model = model.cuda()
-    if isinstance(model, torch.nn.DataParallel):
         model = torch.nn.DataParallel(model)
 
-    # print(sys.getsizeof(model))
     train(model, args, config, tokenizer)

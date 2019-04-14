@@ -6,35 +6,30 @@ class Config():
         self.filename_test = 'DATA/LCSTS/PART_III.txt'
 
         # trimmed data
-        self.filename_trimmed_train = 'DATA/bert/train.pt'
-        self.filename_trimmed_valid = 'DATA/bert/valid.pt'
-        self.filename_trimmed_test = 'DATA/bert/test.pt'
+        self.filename_trimmed_train = 'DATA/data_hybird/valid.pt'
+        self.filename_trimmed_valid = 'DATA/data_hybird/valid.pt'
+        self.filename_trimmed_test = 'DATA/data_hybird/test.pt'
 
-        # # bos eos
-        # self.bos = 2
-        # self.eos = 3
-
-        # bert
-        self.bos = 101 # [CLS]
-        self.eos = 102 # [SEP]
+        # bos eos
+        self.bos = 2
+        self.eos = 3
 
         # vocab
-        # self.src_filename_word2idx = 'DATA/data_hybird/src_word2index.pkl'
-        # self.src_filename_idx2word = 'DATA/data_hybird/src_index2word.pkl'
-        # self.src_vocab_size = 961195
+        self.src_filename_word2idx = 'DATA/data_hybird/src_word2index.pkl'
+        self.src_filename_idx2word = 'DATA/data_hybird/src_index2word.pkl'
+        self.src_vocab_size = 961195
         # self.src_vocab_size = 4000
 
-        # self.tgt_filename_word2idx = 'DATA/data_hybird/tgt_word2index.pkl'
-        # self.tgt_filename_idx2word = 'DATA/data_hybird/tgt_index2word.pkl'
-        # self.tgt_vocab_size = 8250
+        self.tgt_filename_word2idx = 'DATA/data_hybird/tgt_word2index.pkl'
+        self.tgt_filename_idx2word = 'DATA/data_hybird/tgt_index2word.pkl'
+        self.tgt_vocab_size = 8250
         # self.tgt_vocab_size = 4000
 
-        # hybird word-character
         self.word_share = True
-        self.word_seg = False
+        self.word_seg = False # hybird word-character
 
         # sequence length
-        self.t_len = 150
+        self.t_len = 80
         self.s_len = 50
 
         # embedding
@@ -43,9 +38,9 @@ class Config():
 
         # filename
         #################################################
-        self.filename_model = 'result/model/bert/'
-        self.filename_data = 'result/data/bert/'
-        self.filename_rouge = 'result/data/bert/ROUGE.txt'
+        self.filename_model = 'result/model/'
+        self.filename_data = 'result/data/'
+        self.filename_rouge = 'result/data/ROUGE.txt'
         #################################################
         self.filename_gold = 'result/gold/gold_summaries.txt'
 
@@ -62,16 +57,9 @@ class Config():
 
         self.n_layer = 2
         self.cell = 'lstm'
-        self.attn_flag = 'loung'
+        self.attn_flag = 'luong'
         self.dropout = 0
         self.bidirectional = True
         self.optimzer = 'Adam'
         self.intra_decoder = False
         self.enc_attn = False
-
-        # bert (word_share=True)
-        self.bert = True
-        self.fine_tuning = False
-        self.filename_bert = ''
-        self.filename_cache = 'cache'
-        self.local_rank = 2
