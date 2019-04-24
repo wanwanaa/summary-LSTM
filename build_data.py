@@ -24,9 +24,34 @@ def main():
     vocab = Vocab(config, datasets.train_text, datasets.train_summary)
 
     # save pt(train, valid, test)
-    save_data(datasets.train_text, datasets.train_summary, vocab.src_word2idx, vocab.tgt_word2idx, config.t_len, config.s_len, config.filename_trimmed_train)
-    save_data(datasets.valid_text, datasets.valid_summary, vocab.src_word2idx, vocab.tgt_word2idx, config.t_len, config.s_len, config.filename_trimmed_valid)
-    save_data(datasets.test_text, datasets.test_summary, vocab.src_word2idx, vocab.tgt_word2idx, config.t_len, config.s_len, config.filename_trimmed_test)
+    save_data(datasets.train_text, datasets.train_summary, vocab.src_word2idx, vocab.tgt_word2idx,
+              config.t_len, config.s_len, config.filename_trimmed_train, config.word_seg)
+    save_data(datasets.valid_text, datasets.valid_summary, vocab.src_word2idx, vocab.tgt_word2idx,
+              config.t_len, config.s_len, config.filename_trimmed_valid, config.word_seg)
+    save_data(datasets.test_text, datasets.test_summary, vocab.src_word2idx, vocab.tgt_word2idx,
+              config.t_len, config.s_len, config.filename_trimmed_test, config.word_seg)
+
+
+def main_clean():
+    config = Config()
+
+    print('Loading data ... ...')
+    train_src = get_datasets_clean(config.filename_train_src)
+    train_tgt = get_datasets_clean(config.filename_train_tgt)
+    valid_src = get_datasets_clean(config.filename_valid_src)
+    valid_tgt = get_datasets_clean(config.filename_valid_tgt)
+    test_src = get_datasets_clean(config.filename_test_src)
+    test_tgt = get_datasets_clean(config.filename_test_tgt)
+
+    print('Building vocab ... ...')
+    vocab = Vocab(config, train_src, train_tgt)
+
+    save_data(train_src, train_tgt, vocab.src_word2idx, vocab.tgt_word2idx, config.t_len,
+              config.s_len, config.filename_trimmed_train, config.word_seg)
+    save_data(valid_src, valid_tgt, vocab.src_word2idx, vocab.tgt_word2idx, config.t_len,
+              config.s_len, config.filename_trimmed_valid, config.word_seg)
+    save_data(test_src, test_tgt, vocab.src_word2idx, vocab.tgt_word2idx, config.t_len,
+              config.s_len, config.filename_trimmed_test, config.word_seg)
 
 
 # test trimmed file result
@@ -35,8 +60,13 @@ def test():
     vocab = Vocab(config)
 
     test = torch.load(config.filename_trimmed_test)
-    sen = index2sentence(np.array(test[0][0]), vocab.src_idx2word)
+    sen = index2sentence(np.array(test[0][1]), vocab.tgt_idx2word)
+    print(test[0][1])
+    sen = index2sentence(np.array(test[0][1]), vocab.tgt_idx2word)
     print(sen)
+    # f = open('DATA/data_character/tgt_word2index.pkl', 'rb')
+    # vocab = pickle.load(f)
+    # print(vocab)
 
 
 def write_file(datasets, filename):
@@ -51,7 +81,8 @@ if __name__ == '__main__':
     # save_data(datasets.train_text, datasets.train_summary, vocab.src_word2idx, vocab.tgt_word2idx, config.t_len,
     #           config.s_len, config.filename_trimmed_train)
     # main()
-    test()
+    # test()
+    main_clean()
     # config = Config()
     # vocab = Vocab(config)
     # print(vocab.src_word2idx)

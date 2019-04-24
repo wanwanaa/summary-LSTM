@@ -75,8 +75,8 @@ def get_trimmed_datasets(datasets, word2idx, max_length, word_seg):
     return data
 
 
-def save_data(text, summary, src_word2idx, tgt_word2idx, t_len, s_len, filename):
-    text = get_trimmed_datasets(text, src_word2idx, t_len, True)
+def save_data(text, summary, src_word2idx, tgt_word2idx, t_len, s_len, filename, seg):
+    text = get_trimmed_datasets(text, src_word2idx, t_len, seg)
     summary = get_trimmed_datasets(summary, tgt_word2idx, s_len, False)
     data = data_util.TensorDataset(text, summary)
     print('data save at ', filename)
@@ -107,3 +107,12 @@ def data_load(filename, batch_size, shuffle):
     data = torch.load(filename)
     data_loader = data_util.DataLoader(data, batch_size, shuffle=shuffle, num_workers=2)
     return data_loader
+
+
+def get_datasets_clean(filename):
+    result = []
+    with open(filename, 'r', encoding='utf-8') as f:
+        for line in f:
+            line = line.strip()
+            result.append(line)
+    return result

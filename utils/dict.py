@@ -11,8 +11,12 @@ class Vocab():
         self.src_word2idx = {}
         self.src_idx2word = {}
 
-        self.tgt_filename_idx2word = config.tgt_filename_idx2word
-        self.tgt_filename_word2idx = config.tgt_filename_word2idx
+        if config.word_share:
+            self.tgt_filename_idx2word = config.src_filename_idx2word
+            self.tgt_filename_word2idx = config.src_filename_word2idx
+        else:
+            self.tgt_filename_idx2word = config.tgt_filename_idx2word
+            self.tgt_filename_word2idx = config.tgt_filename_word2idx
         self.vocab_size = config.tgt_vocab_size
         self.tgt_word2idx = {}
         self.tgt_idx2word = {}
@@ -20,6 +24,8 @@ class Vocab():
         if src_datasets is not None:
             if config.word_seg:
                 self.src_vocab = self._get_vocab_word(src_datasets)
+            else:
+                self.src_vocab = self._get_vocab(tgt_datasets)
             self.src_idx2word = self.index2word(config.src_vocab_size, self.src_vocab)
             self.src_word2idx = self.word2index(self.src_word2idx, config.src_vocab_size, self.src_vocab)
             self.writeFile(self.src_idx2word, self.src_filename_idx2word)

@@ -5,10 +5,11 @@ from models.beam import *
 
 
 class Seq2seq(nn.Module):
-    def __init__(self, encoder, decoder, config):
+    def __init__(self, encoder, decoder, config, cnn=None):
         super().__init__()
         self.encoder = encoder
         self.decoder = decoder
+        self.cnn = cnn
         self.bos = config.bos
         self.s_len = config.s_len
         self.beam_size = config.beam_size
@@ -16,6 +17,7 @@ class Seq2seq(nn.Module):
 
         self.loss_func = nn.CrossEntropyLoss()
 
+        self.linear_cnn = nn.Linear(config.hidden_size * 2, config.hidden_size)
         self.linear_out = nn.Linear(config.hidden_size, config.tgt_vocab_size)
         self.softmax = nn.Softmax(dim=-1)
 
@@ -52,6 +54,9 @@ class Seq2seq(nn.Module):
         :return:
         """
         h, encoder_out = self.encoder(x)
+        cnn_out = self.cnn(x)
+        hidden = self.linear_cnn(torch.cat((h[0], cnn_out), dim=-1))
+        h = (hidden, h[1])
 
         # add <bos>
         y_c = self.convert(y)
@@ -84,6 +89,9 @@ class Seq2seq(nn.Module):
 
     def sample(self, x, y):
         h, encoder_out = self.encoder(x)
+        cnn_out = self.cnn(x)
+        hidden = self.linear_cnn(torch.cat((h[0], cnn_out), dim=-1))
+        h = (hidden, h[1])
         out = torch.ones(x.size(0)) * self.bos
         result = []
         idx = []

@@ -2,6 +2,7 @@ from models.attention import *
 from models.rnn import *
 from models.seq2seq import *
 from models.embedding import *
+from models.cnn import Encoder_cnn
 
 
 def build_model(config):
@@ -15,7 +16,11 @@ def build_model(config):
     # else:
     encoder = Encoder(enc_embeds, config)
     decoder = Decoder(dec_embeds, config)
-    model = Seq2seq(encoder, decoder, config)
+    if config.cnn:
+        cnn = Encoder_cnn(enc_embeds, config)
+        model = Seq2seq(encoder, decoder, config, cnn)
+    else:
+        model = Seq2seq(encoder, decoder, config)
     return model
 
 

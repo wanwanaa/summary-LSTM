@@ -1,35 +1,53 @@
 class Config():
     def __init__(self):
         # dataset
-        self.filename_train = 'DATA/LCSTS/PART_I.txt'
-        self.filename_valid = 'DATA/LCSTS/PART_II.txt'
-        self.filename_test = 'DATA/LCSTS/PART_III.txt'
+        self.filename_train_src = 'DATA/raw_data/LCSTS_clean/train.source'
+        self.filename_train_tgt = 'DATA/raw_data/LCSTS_clean/train.target'
+        self.filename_valid_src = 'DATA/raw_data/LCSTS_clean/valid.source'
+        self.filename_valid_tgt = 'DATA/raw_data/LCSTS_clean/valid.target'
+        self.filename_test_src = 'DATA/raw_data/LCSTS_clean/test.source'
+        self.filename_test_tgt = 'DATA/raw_data/LCSTS_clean/test.target'
 
-        # trimmed data
-        self.filename_trimmed_train = 'DATA/data_hybird/valid.pt'
-        self.filename_trimmed_valid = 'DATA/data_hybird/valid.pt'
-        self.filename_trimmed_test = 'DATA/data_hybird/test.pt'
+        # self.filename_train = 'DATA/LCSTS/PART_I.txt'
+        # self.filename_valid = 'DATA/LCSTS/PART_II.txt'
+        # self.filename_test = 'DATA/LCSTS/PART_III.txt'
+
+        # # trimmed data
+        # self.filename_trimmed_train = 'DATA/data/clean/data_hybird/train.pt'
+        # self.filename_trimmed_valid = 'DATA/data/clean/data_hybird/valid.pt'
+        # self.filename_trimmed_test = 'DATA/data/clean/data_hybird/test.pt'
+        #
+        #
+        #
+        # # vocab
+        # self.src_filename_word2idx = 'DATA/data/clean/data_hybird/src_word2index.pkl'
+        # self.src_filename_idx2word = 'DATA/data/clean/data_hybird/src_index2word.pkl'
+        # self.src_vocab_size = 523566
+        # # self.src_vocab_size = 961195
+        #
+        # self.tgt_filename_word2idx = 'DATA/data/clean/data_hybird/tgt_word2index.pkl'
+        # self.tgt_filename_idx2word = 'DATA/data/clean/data_hybird/tgt_index2word.pkl'
+        # self.tgt_vocab_size = 8250
+
+        self.filename_trimmed_train = 'DATA/data/LCSTS2.0/data_char/train.pt'
+        self.filename_trimmed_valid = 'DATA/data/LCSTS2.0/data_char/valid.pt'
+        self.filename_trimmed_test = 'DATA/data/LCSTS2.0/data_char/test.pt'
+
+        self.src_filename_word2idx = 'DATA/data/LCSTS2.0/data_char/src_word2index.pkl'
+        self.src_filename_idx2word = 'DATA/data/LCSTS2.0/data_char/src_index2word.pkl'
+
+        self.src_vocab_size = 4000
+        self.tgt_vocab_size = 4000
+
+        self.word_share = True
+        self.word_seg = False # hybird word-character
 
         # bos eos
         self.bos = 2
         self.eos = 3
 
-        # vocab
-        self.src_filename_word2idx = 'DATA/data_hybird/src_word2index.pkl'
-        self.src_filename_idx2word = 'DATA/data_hybird/src_index2word.pkl'
-        self.src_vocab_size = 961195
-        # self.src_vocab_size = 4000
-
-        self.tgt_filename_word2idx = 'DATA/data_hybird/tgt_word2index.pkl'
-        self.tgt_filename_idx2word = 'DATA/data_hybird/tgt_index2word.pkl'
-        self.tgt_vocab_size = 8250
-        # self.tgt_vocab_size = 4000
-
-        self.word_share = True
-        self.word_seg = False # hybird word-character
-
         # sequence length
-        self.t_len = 80
+        self.t_len = 150
         self.s_len = 50
 
         # embedding
@@ -48,8 +66,8 @@ class Config():
         self.LR = 0.0003
         self.batch_size = 64
         self.iters = 10000
-        self.embedding_dim = 768
-        self.hidden_size = 768
+        self.embedding_dim = 512
+        self.hidden_size = 512
         self.beam_size = 10
 
         # transformer multi-head attention
@@ -62,4 +80,5 @@ class Config():
         self.bidirectional = True
         self.optimzer = 'Adam'
         self.intra_decoder = False
-        self.enc_attn = False
+        self.enc_attn = True
+        self.cnn = True
