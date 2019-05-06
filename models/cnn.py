@@ -11,6 +11,7 @@ class Encoder_cnn(nn.Module):
         self.hidden_size = config.hidden_size
         self.n_layer = config.n_layer
         self.t_len = config.t_len
+        self.cnn_flag = config.cnn
 
         # nn.Conv2d(in_channels, out_channels, kernel_size, stride, padding)
         # convolution path1
@@ -19,13 +20,23 @@ class Encoder_cnn(nn.Module):
             nn.BatchNorm1d(config.hidden_size),
             nn.ReLU(),
         )
+        # self.conv2 = nn.Sequential(
+        #     nn.Conv1d(self.hidden_size, self.hidden_size, 3, 1, 1),
+        #     nn.BatchNorm1d(config.hidden_size),
+        #     nn.ReLU(),
+        # )
+        # self.conv3 = nn.Sequential(
+        #     nn.Conv1d(self.hidden_size, self.hidden_size, 3, 1, 1),
+        #     nn.BatchNorm1d(config.hidden_size),
+        #     nn.ReLU()
+        # )
         self.conv2 = nn.Sequential(
-            nn.Conv1d(self.hidden_size, self.hidden_size, 3, 1, 1),
+            nn.Conv1d(self.hidden_size, self.hidden_size, 5, 1, 2),
             nn.BatchNorm1d(config.hidden_size),
             nn.ReLU(),
         )
         self.conv3 = nn.Sequential(
-            nn.Conv1d(self.hidden_size, self.hidden_size, 3, 1, 1),
+            nn.Conv1d(self.hidden_size, self.hidden_size, 5, 1, 2),
             nn.BatchNorm1d(config.hidden_size),
             nn.ReLU()
         )
@@ -36,10 +47,11 @@ class Encoder_cnn(nn.Module):
             nn.GLU()
         )
         # Linear
-        self.linear_out = nn.Sequential(
-            nn.Linear(self.hidden_size*self.t_len, self.hidden_size*4),
-            nn.Linear(self.hidden_size*4, self.hidden_size)
-        )
+        if config.cnn == 1:
+            self.linear_out = nn.Sequential(
+                nn.Linear(self.hidden_size*self.t_len, self.hidden_size*4),
+                nn.Linear(self.hidden_size*4, self.hidden_size)
+            )
 
     def forward(self, x):
         # e(batch, t_len, hidden_size)
@@ -52,8 +64,11 @@ class Encoder_cnn(nn.Module):
         out = self.conv2(out)
         out = self.conv3(out)
 
-        out = out.view(x.size(0), -1)
-        out = self.linear_out(out).view(1, -1, self.hidden_size)
-        out = out.repeat(self.n_layer, 1, 1)
+        if self.cnn_flag == 1:
+            out = out.view(x.size(0), -1)
+            out = self.linear_out(out).view(1, -1, self.hidden_size)
+            out = out.repeat(self.n_layer, 1, 1)
+        else:
+            out = out.transpose(1, 2)
 
         return out

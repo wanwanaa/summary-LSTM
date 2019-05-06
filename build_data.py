@@ -55,15 +55,26 @@ def main_clean():
 
 
 # test trimmed file result
-def test():
-    config = Config()
-    vocab = Vocab(config)
+def test(filename):
+    result = []
+    with open(filename, 'r', encoding='utf-8') as f:
+        for line in f:
+            line = line.strip()
+            line = list(line)
+            line = ' '.join(line)
+            result.append(line)
+    result = '\n'.join(result)
+    f = open('train.target', 'w', encoding='utf-8')
+    f.write(result)
 
-    test = torch.load(config.filename_trimmed_test)
-    sen = index2sentence(np.array(test[0][1]), vocab.tgt_idx2word)
-    print(test[0][1])
-    sen = index2sentence(np.array(test[0][1]), vocab.tgt_idx2word)
-    print(sen)
+    # config = Config()
+    # vocab = Vocab(config)
+    #
+    # test = torch.load(config.filename_trimmed_test)
+    # sen = index2sentence(np.array(test[0][0]), vocab.src_idx2word)
+    # print(sen)
+    # sen = index2sentence(np.array(test[0][1]), vocab.tgt_idx2word)
+    # print(sen)
     # f = open('DATA/data_character/tgt_word2index.pkl', 'rb')
     # vocab = pickle.load(f)
     # print(vocab)
@@ -81,8 +92,8 @@ if __name__ == '__main__':
     # save_data(datasets.train_text, datasets.train_summary, vocab.src_word2idx, vocab.tgt_word2idx, config.t_len,
     #           config.s_len, config.filename_trimmed_train)
     # main()
-    # test()
-    main_clean()
+    test('DATA/raw_data/LCSTS_clean/train.target')
+    # main_clean()
     # config = Config()
     # vocab = Vocab(config)
     # print(vocab.src_word2idx)

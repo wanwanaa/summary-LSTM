@@ -32,12 +32,14 @@ class Encoder(nn.Module):
                 bidirectional=config.bidirectional
             )
 
+        if config.cnn == 2:
+            self.cnn_linear = nn.Linear(self.hidden_size*2, self.hidden_size)
         if config.enc_attn:
             self.selfattn = Self_attention(config)
         else:
             self.selfattn = None
 
-    def forward(self, x):
+    def forward(self, x, cnn_out=None):
         """
         :param x:(batch, t_len)
         :return: gru_h(n_layer, batch, hidden_size) lstm_h(h, c)
@@ -54,6 +56,11 @@ class Encoder(nn.Module):
             h = (h[0][::2].contiguous(), h[1][::2].contiguous())
         else:
             h = h[:self.n_layer]
+        if cnn_out is not None:
+            # print('cnn:', cnn_out.size())
+            # print('encoder:', encoder_out.size())
+            out = self.cnn_linear(torch.cat((encoder_out, cnn_out), dim=-1))
+            encoder_out = out + encoder_out
         if self.selfattn:
             encoder_out = self.selfattn(encoder_out)
 

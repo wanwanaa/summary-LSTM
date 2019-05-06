@@ -16,7 +16,7 @@ def build_model(config):
     # else:
     encoder = Encoder(enc_embeds, config)
     decoder = Decoder(dec_embeds, config)
-    if config.cnn:
+    if config.cnn != 0:
         cnn = Encoder_cnn(enc_embeds, config)
         model = Seq2seq(encoder, decoder, config, cnn)
     else:

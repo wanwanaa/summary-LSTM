@@ -276,6 +276,6 @@ class Self_attention(nn.Module):
         weights = torch.bmm(enc, h) # (batch, time_step, hidden_size)
         weights = self.softmax(weights/math.sqrt(self.hidden_size))
         context = torch.bmm(weights, value) # (batch, time_step, hidden_size)
-        context = self.linear_out(torch.cat((context, encoder_out), dim=-1))
+        context = self.linear_out(torch.cat((context, encoder_out), dim=-1)) + encoder_out
 
         return context

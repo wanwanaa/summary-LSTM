@@ -10,6 +10,7 @@ class Seq2seq(nn.Module):
         self.encoder = encoder
         self.decoder = decoder
         self.cnn = cnn
+        self.cnn_flag = config.cnn
         self.bos = config.bos
         self.s_len = config.s_len
         self.beam_size = config.beam_size
@@ -53,10 +54,15 @@ class Seq2seq(nn.Module):
         :param y: (batch, s_len) decoder input
         :return:
         """
-        h, encoder_out = self.encoder(x)
-        cnn_out = self.cnn(x)
-        hidden = self.linear_cnn(torch.cat((h[0], cnn_out), dim=-1))
-        h = (hidden, h[1])
+        if self.cnn_flag == 2:
+            cnn_out = self.cnn(x)
+        else:
+            cnn_out = None
+        h, encoder_out = self.encoder(x, cnn_out)
+        if self.cnn_flag == 1:
+            cnn_out = self.cnn(x)
+            hidden = self.linear_cnn(torch.cat((h[0], cnn_out), dim=-1))
+            h = (hidden, h[1])
 
         # add <bos>
         y_c = self.convert(y)
@@ -88,10 +94,15 @@ class Seq2seq(nn.Module):
         return outputs
 
     def sample(self, x, y):
-        h, encoder_out = self.encoder(x)
-        cnn_out = self.cnn(x)
-        hidden = self.linear_cnn(torch.cat((h[0], cnn_out), dim=-1))
-        h = (hidden, h[1])
+        if self.cnn_flag == 2:
+            cnn_out = self.cnn(x)
+        else:
+            cnn_out = None
+        h, encoder_out = self.encoder(x, cnn_out)
+        if self.cnn_flag == 1:
+            cnn_out = self.cnn(x)
+            hidden = self.linear_cnn(torch.cat((h[0], cnn_out), dim=-1))
+            h = (hidden, h[1])
         out = torch.ones(x.size(0)) * self.bos
         result = []
         idx = []
@@ -124,7 +135,15 @@ class Seq2seq(nn.Module):
         return result, idx
 
     def beam_search(self, x):
-        h, encoder_out = self.encoder(x)
+        if self.cnn_flag == 2:
+            cnn_out = self.cnn(x)
+        else:
+            cnn_out = None
+        h, encoder_out = self.encoder(x, cnn_out)
+        if self.cnn_flag == 1:
+            cnn_out = self.cnn(x)
+            hidden = self.linear_cnn(torch.cat((h[0], cnn_out), dim=-1))
+            h = (hidden, h[1])
         encoder_out = encoder_out.repeat(1, self.beam_size, 1).view(-1, self.config.t_len, self.config.hidden_size)
         # initial beam
         beam = []
@@ -179,7 +198,7 @@ class Seq2seq(nn.Module):
 
             # out (batch_size, beam_size, vocab_size)
             # h (n_layer, batch_size, beam_size, hidden_size)
-            out = out.view(-1, self.beam_size, self.config.vocab_size)
+            out = out.view(-1, self.beam_size, self.config.tgt_vocab_size)
             if self.config.cell == 'lstm':
                 h0 = h[0].view(self.config.n_layer, -1, self.beam_size, self.config.hidden_size)
                 h1 = h[1].view(self.config.n_layer, -1, self.beam_size, self.config.hidden_size)
