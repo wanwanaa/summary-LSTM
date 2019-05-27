@@ -15,11 +15,11 @@ class Encoder_cnn(nn.Module):
 
         # nn.Conv2d(in_channels, out_channels, kernel_size, stride, padding)
         # convolution path1
-        self.conv1 = nn.Sequential(
-            nn.Conv1d(self.hidden_size, self.hidden_size, 1, 1, 0),
-            nn.BatchNorm1d(config.hidden_size),
-            nn.ReLU(),
-        )
+        # self.conv1 = nn.Sequential(
+        #     nn.Conv1d(self.hidden_size, self.hidden_size, 1, 1, 0),
+        #     nn.BatchNorm1d(config.hidden_size),
+        #     nn.ReLU(),
+        # )
         # self.conv2 = nn.Sequential(
         #     nn.Conv1d(self.hidden_size, self.hidden_size, 3, 1, 1),
         #     nn.BatchNorm1d(config.hidden_size),
@@ -35,11 +35,11 @@ class Encoder_cnn(nn.Module):
             nn.BatchNorm1d(config.hidden_size),
             nn.ReLU(),
         )
-        self.conv3 = nn.Sequential(
-            nn.Conv1d(self.hidden_size, self.hidden_size, 5, 1, 2),
-            nn.BatchNorm1d(config.hidden_size),
-            nn.ReLU()
-        )
+        # self.conv3 = nn.Sequential(
+        #     nn.Conv1d(self.hidden_size, self.hidden_size, 5, 1, 2),
+        #     nn.BatchNorm1d(config.hidden_size),
+        #     nn.ReLU()
+        # )
 
         # GLU
         self.input = nn.Sequential(
@@ -60,9 +60,9 @@ class Encoder_cnn(nn.Module):
         e = self.input(e).transpose(1, 2)
 
         # (batch, hidden_size, t_len)
-        out = self.conv1(e)
-        out = self.conv2(out)
-        out = self.conv3(out)
+        out = self.conv2(e)
+        # out = self.conv2(out)
+        # out = self.conv3(out)
 
         if self.cnn_flag == 1:
             out = out.view(x.size(0), -1)

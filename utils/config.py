@@ -32,7 +32,7 @@ class Config():
         # char
         self.filename_trimmed_train = 'DATA/data/LCSTS2.0/data_char/valid.pt'
         self.filename_trimmed_valid = 'DATA/data/LCSTS2.0/data_char/valid.pt'
-        self.filename_trimmed_test = 'DATA/data/LCSTS2.0/data_char/test.pt'
+        self.filename_trimmed_test = 'DATA/data/LCSTS2.0/data_char/valid.pt'
 
         self.src_filename_word2idx = 'DATA/data/LCSTS2.0/data_char/src_word2index.pkl'
         self.src_filename_idx2word = 'DATA/data/LCSTS2.0/data_char/src_index2word.pkl'
@@ -72,15 +72,15 @@ class Config():
         self.filename_data = 'result/data/'
         self.filename_rouge = 'result/data/ROUGE.txt'
         #################################################
-        self.filename_gold = 'result/gold/gold_summaries.txt'
+        self.filename_gold = 'result/gold/valid_summaries.txt'
 
         # Hyper Parameters
         self.LR = 0.0003
-        self.batch_size = 64
+        self.batch_size = 32
         self.iters = 10000
         self.embedding_dim = 512
         self.hidden_size = 512
-        self.beam_size = 10
+        self.beam_size = 5
 
         # transformer multi-head attention
         self.h_head = 8
@@ -92,7 +92,7 @@ class Config():
         self.bidirectional = True
         self.optimzer = 'Adam'
         self.intra_decoder = False
-        self.enc_attn = True
+        self.enc_attn = False
         self.cnn = 2 # 0: None
                      # 1: hidden state
                      # 2: encoder outputs
